@@ -1,4 +1,4 @@
-DPM-Winter-2013-Group4
+DPM-Winter-2013
 ======================
 
 "Team vs Independent Work
