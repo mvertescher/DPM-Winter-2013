@@ -1,0 +1,15 @@
+package localization;
+
+public class LocalizationController {
+	
+	public Node currentNode;
+	
+	public LocaltizationController(Node n) {
+		currentNode = n;
+	}
+	
+	
+	
+	
+	
+}

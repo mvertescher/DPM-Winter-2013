@@ -1,0 +1,5 @@
+package robotstates;
+
+public enum StateID {
+	LOCALIZING, TRAVELLING, AVOIDING
+}

@@ -1,0 +1,24 @@
+package pathfinding;
+
+/**
+ * Pathfinder.java
+ * 
+ * Class dedicated to finding the optimal path to a point
+ * 
+ * @author Matthew Vertescher
+ *
+ */
+public class Pathfinder {
+	
+	private Robot robot
+	private GridMap map;
+	
+	public Pathfinder(Robot r) {
+		this.robot = r;
+		this.map = new GridMap();
+	}
+
+	
+	
+	
+}

@@ -1,0 +1,17 @@
+package localization;
+
+import lejos.robotics.pathfinding.Node;
+
+public class LocalizationController {
+	
+	public Node currentNode;
+	
+	public LocaltizationController(Node n) {
+		currentNode = n;
+	}
+	
+	public l
+	
+	
+	
+}

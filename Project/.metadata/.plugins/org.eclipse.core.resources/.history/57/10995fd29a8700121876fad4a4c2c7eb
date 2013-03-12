@@ -1,0 +1,29 @@
+package subsumption.behaviors;
+
+import subsumption.CricketBot;
+import lejos.robotics.subsumption.Behavior;
+
+public class Localize implements Behavior {
+
+	public Localize(CricketBot b) {
+		
+	}
+	
+	@Override
+	public boolean takeControl() {
+		return false;
+	}
+
+	@Override
+	public void action() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void suppress() {
+		// TODO Auto-generated method stub
+		
+	}
+
+}

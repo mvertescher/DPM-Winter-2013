@@ -1,0 +1,87 @@
+package states;
+
+import robot.Robot;
+import lejos.nxt.Sound;
+
+public class Travelling {
+
+	private Robot robot;
+	private Avoiding avoiding;
+	
+	public Travelling(Robot r) {
+		this.robot = r;
+		this.avoiding = new Avoiding(r,this);
+		
+		// Pre-loaded obstacles
+		//avoiding.mapObstacleAt(-15,45);
+		//avoiding.mapObstacleAt(15,105);
+		
+	}
+	
+	public void travelTo(int x, int y) {
+		int usDistance = 0;
+		boolean done = false;
+		
+		robot.turnToPoint(x,y);
+
+		robot.startUltrasonicTimer();
+		
+		robot.moveForwardUntilStop();
+		
+		while (!done) {
+			
+			usDistance = robot.getUltrasonicDistance();
+			
+			if (usDistance < 20) { 
+				robot.stopMotors();
+				// Enter avoid state
+				//avoiding.simpleAvoid();
+				//avoiding.goToNode(2,0);
+				//avoiding.travelPath();
+				
+				snooze(500);
+				
+				robot.moveImmediatelyBy(-10);
+				
+				usDistance = robot.getUltrasonicDistance();
+				
+				snooze(500);
+				double theta = robot.getTheta();
+				
+				avoiding.mapObstacleAt(robot.getX() + (usDistance*Math.sin(Math.toRadians(theta))), robot.getY() + (usDistance*Math.cos(Math.toRadians(theta))));
+				
+				
+				avoiding.travelOptimalPath(x,y);
+				
+				
+				// The robot will return to a navigating state here
+				snooze(1000);
+				//Sound.beep();
+				robot.turnToPoint(x,y);
+				Sound.buzz();
+				snooze(1000);
+				robot.moveForwardUntilStop();
+			}
+			
+			// Check if the robot is at its position 
+			else if (robot.getY() > y) {
+				robot.stopMotors();
+				done = true;
+			}
+			
+			// Throttle 
+			snooze(30);
+		}
+		
+		Sound.beep();
+	}
+	
+	
+	/**
+	 * Sleep the thread for some milliseconds
+	 * @param milliseconds
+	 */
+	private void snooze(int milliseconds) {
+		try { Thread.sleep(milliseconds); } catch (InterruptedException e) { e.printStackTrace(); }
+	}
+}

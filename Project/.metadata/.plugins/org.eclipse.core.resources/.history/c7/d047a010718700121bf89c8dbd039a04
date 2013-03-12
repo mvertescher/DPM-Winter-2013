@@ -1,0 +1,32 @@
+package experimental;
+
+import lejos.robotics.subsumption.Behavior;
+
+public class Turn implements Behavior {
+
+	private Role role;
+	
+	public Turn(Role r) {
+		this.role = r;
+	}
+	
+	
+	@Override
+	public boolean takeControl() {
+		// TODO Auto-generated method stub
+		return true;
+	}
+
+	@Override
+	public void action() {
+		// TODO Auto-generated method stub
+		role.turnToPoint(10,10);
+	}
+
+	@Override
+	public void suppress() {
+		// TODO Auto-generated method stub
+		
+	}
+
+}

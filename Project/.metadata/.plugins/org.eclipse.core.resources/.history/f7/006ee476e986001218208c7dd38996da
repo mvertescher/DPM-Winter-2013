@@ -1,0 +1,33 @@
+package states;
+
+import robot.Robot;
+
+public class StateController {
+	
+	private State[] states;
+	
+	public StateController(Robot r) {
+		states = new State[3];
+		states[StateID.LOCALIZING.ordinal()] = new Localizing(r); 
+		states[StateID.TRAVELLING.ordinal()] = new Travelling(r); 
+		states[StateID.AVOIDING.ordinal()] = new Avoiding(r); 
+	}
+	
+	public Localizing localizingState() {
+		return (Localizing) this.getState(StateID.LOCALIZING);
+	}
+	
+	public Travelling travellingState() {
+		return (Travelling) this.getState(StateID.TRAVELLING);
+	}
+	
+	
+	public Avoiding avoidingState() {
+		return (Avoiding) this.getState(StateID.AVOIDING);
+	}
+	
+	private State getState(StateID sid) {
+		return states[sid.ordinal()];
+	}
+	
+}

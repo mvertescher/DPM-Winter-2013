@@ -1,0 +1,10 @@
+package states;
+
+import robot.Robot;
+
+abstract class State {
+	public StateID id;
+	
+	public State(Robot r) {
+	}
+}

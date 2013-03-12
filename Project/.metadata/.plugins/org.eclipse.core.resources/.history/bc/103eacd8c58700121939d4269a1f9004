@@ -1,0 +1,77 @@
+package navigation;
+
+import robot.Robot;
+import lejos.geom.Point;
+import lejos.nxt.NXTRegulatedMotor;
+import lejos.robotics.navigation.Pose;
+import lejos.robotics.pathfinding.Path;
+
+
+/** 
+ * Navigator.java
+ * 
+ * Class dedicated to high level traveling
+ * 
+ * To interrupt any travel method, stop motors must be called
+ * 
+ * @author Matthew Vertescher
+ *
+ */
+public class Navigator {
+
+	private Robot robot; 
+	private MotorController mc;
+	
+	public Navigator(Robot r, NXTRegulatedMotor leftmtr, NXTRegulatedMotor rightmtr, double leftrad, double rightrad, double width) {
+		this.robot = r;
+		this.mc = new MotorController(this, leftmtr, rightmtr, leftrad, rightrad, width);
+	}
+	
+	public void travelForwardsToPoint(Point p) {
+		
+	}
+	
+	public void travelBackwardsToPoint(Point p) {
+		
+	}
+	
+	public void travelPath(Path p) {
+		
+	}
+	
+	public void turnToPoint(Point p) {
+		mc.turnToPoint(p.x,p.y);
+	}
+	
+	public void moveImmediatelyBy(double d) {
+		mc.moveImmediatelyBy(d);
+	}
+	
+	public void moveForwardUntilStop() {
+		mc.moveForwardUntilStop();
+	}
+	
+	public void stopMotors() {
+		mc.stopMotors();
+	}
+	
+	public boolean atDestination(Point p) {
+		return (Math.abs(p.getX() - this.getX()) < 2 && Math.abs(p.getY() - this.getY()) < 2);
+	}
+	
+	public double getX() {
+		return this.robot.getX();
+	}
+	
+	public double getY() {
+		return this.robot.getY();
+	}
+	
+	public double getTheta() {
+		return this.robot.getTheta();
+	}
+
+	
+	
+	
+}

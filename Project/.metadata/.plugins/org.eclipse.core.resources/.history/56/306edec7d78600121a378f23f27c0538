@@ -1,0 +1,7 @@
+package states;
+
+public  State {
+	public StateID id;
+	
+	
+}

@@ -1,0 +1,61 @@
+package states;
+
+import robot.Robot;
+
+/**
+ * StateController.java
+ * 
+ * Organizes states, essenically a wrapper class
+ * 
+ * @author Matthew Vertescher
+ *
+ */
+public class StateController {
+	
+	private State[] states;
+	
+	/**
+	 * Constructor
+	 * @param Robot r
+	 */
+	public StateController(Robot r) {
+		states = new State[3];
+		states[StateID.LOCALIZING.ordinal()] = new Localizing(r); 
+		states[StateID.TRAVELLING.ordinal()] = new Travelling(r); 
+		states[StateID.AVOIDING.ordinal()] = new Avoiding(r); 
+	}
+	
+	/**
+	 * Returns the localization state 
+	 * @return Localizing
+	 */
+	public Localizing localizingState() {
+		return (Localizing) this.getState(StateID.LOCALIZING);
+	}
+	
+	/**
+	 * Returns the traveling state 
+	 * @return Travelling
+	 */
+	public Travelling travellingState() {
+		return (Travelling) this.getState(StateID.TRAVELLING);
+	}
+	
+	/**
+	 * Returns the avoiding state 
+	 * @return
+	 */
+	public Avoiding avoidingState() {
+		return (Avoiding) this.getState(StateID.AVOIDING);
+	}
+	
+	/**
+	 * Private auxiliary method 
+	 * @param sid
+	 * @return state
+	 */
+	private State getState(StateID sid) {
+		return states[sid.ordinal()];
+	}
+	
+}

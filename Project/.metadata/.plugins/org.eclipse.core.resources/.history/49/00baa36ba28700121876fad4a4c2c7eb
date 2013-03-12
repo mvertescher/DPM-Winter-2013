@@ -1,0 +1,13 @@
+package pathfinding;
+
+/**
+ * GridMap.java 
+ * 
+ * Hardcoded map of nodes to represent 
+ * 
+ * @author mverte
+ *
+ */
+public class GridMap {
+
+}

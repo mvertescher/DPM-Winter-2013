@@ -1,0 +1,7 @@
+package subsumption.behaviors;
+
+import lejos.robotics.subsumption.Behavior;
+
+public class Shoot implements Behavior {
+	
+}

@@ -1,0 +1,13 @@
+package robot;
+
+import lejos.nxt.Motor;
+import lejos.nxt.NXTRegulatedMotor;
+
+public class Constants {
+	
+	public final double LEFT_RADIUS = 2.80, RIGHT_RADIUS = 2.80, WIDTH = 16.3;
+	public final static NXTRegulatedMotor LEFT_MOTOR = Motor.B;
+	public final static NXTRegulatedMotor RIGHT_MOTOR = Motor.A;
+	public NXTRegulatedMotor leftFlywheelMotor, rightFlywheelMotor;
+	
+}

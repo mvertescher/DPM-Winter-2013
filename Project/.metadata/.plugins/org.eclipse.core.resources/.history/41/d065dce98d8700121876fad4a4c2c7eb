@@ -1,0 +1,32 @@
+package experimental;
+
+import lejos.robotics.subsumption.Behavior;
+
+public class Turn implements Behavior {
+
+	private CricketBot bot;
+	
+	public Turn(CricketBot b) {
+		this.bot = b;
+	}
+	
+	
+	@Override
+	public boolean takeControl() {
+		// TODO Auto-generated method stub
+		return bot.obstacleDetected();
+	}
+
+	@Override
+	public void action() {
+		// TODO Auto-generated method stub
+		bot.turnToPoint(0,0);
+	}
+
+	@Override
+	public void suppress() {
+		// TODO Auto-generated method stub
+		bot.stopMoving();
+	}
+
+}

@@ -1,0 +1,26 @@
+1362325070369	Delete element
+1362617580937	Rename method 'mapObstacleAt'
+1362625042504	Move compilation unit
+1362627210543	Delete element
+1362628080065	Delete element
+1362630641568	Rename field 'frontUST'
+1362634265068	Move compilation unit
+1362635159373	Rename field 'stateController'
+1362636669553	Rename package 'odometer'
+1362637701204	Rename package 'states'
+1362638007014	Rename package 'robot.states'
+1362638060553	Rename package 'robotstates'
+1362691738883	Rename compilation unit 'RobotWrapper.java'
+1362691750404	Rename compilation unit 'Atacker.java'
+1362692195569	Encapsulate field 'arb'
+1362693138021	Rename type 'Role'
+1362707176740	Rename type 'Turn'
+1362710617822	Rename package 'experimental'
+1362710677524	Move compilation units
+1362711199855	Rename type 'CricketBot'
+1362712890101	Rename type 'Move'
+1362714586050	Rename package 'motor'
+1362715534941	Rename type 'Navigation'
+1362716295000	Rename field 'odometer'
+1362730013251	Rename field 'trigonmetry'
+1362867057325	Rename package 'Localization'

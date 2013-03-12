@@ -1,0 +1,19 @@
+package states;
+
+import robot.Robot;
+
+/**
+ * State.java
+ * 
+ * This abstract class defines the similarities between states
+ * @author mverte
+ *
+ */
+abstract class State {
+	public StateID id;
+	protected Robot robot;
+	
+	public State(Robot r) {
+		this.robot = r;
+	}
+}

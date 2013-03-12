@@ -1,0 +1,12 @@
+package subsumption;
+
+import robot.Robot;
+
+public class Defender extends CricketBot {
+
+	public Defender(Robot r) {
+		super(r);
+		// TODO Auto-generated constructor stub
+	}
+
+}

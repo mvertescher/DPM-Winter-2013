@@ -1,0 +1,7 @@
+package sensors;
+
+public interface SensorTimer {
+	
+	public SensorID getSensorID();
+	
+}

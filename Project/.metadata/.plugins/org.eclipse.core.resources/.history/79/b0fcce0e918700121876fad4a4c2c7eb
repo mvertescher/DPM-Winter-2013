@@ -1,0 +1,33 @@
+package experimental;
+
+import lejos.geom.Point;
+import lejos.robotics.subsumption.Behavior;
+
+public class Move implements Behavior {
+
+	private CricketBot bot;
+	private Point goal;
+	
+	public Move(CricketBot b, Point p) {
+		this.bot = b;
+		this.goal = p;
+	}
+	
+	@Override
+	public boolean takeControl() {
+		return (this.bot.atDestination(goal));
+	}
+
+	@Override
+	public void action() {
+		this.bot.moveToPoint(goal);
+	}
+
+	@Override
+	public void suppress() {
+		this.bot.stopMoving();	
+	}
+	
+	
+	
+}

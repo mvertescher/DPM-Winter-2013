@@ -1,0 +1,66 @@
+package localization;
+
+import robot.Robot;
+import lejos.nxt.Sound;
+import lejos.robotics.pathfinding.Node;
+
+
+public class LocalizationController {
+	
+	public Node currentNode;
+	private Robot robot;
+	
+	public LocalizationController(Robot r, Node n) {
+		this.robot = r;
+		this.currentNode = n;
+	}
+	
+	public void localize() {
+		//boolean leftFlag = false, rightFlag = false; 
+		
+		while(!robot.lineHitLeft() && !robot.lineHitRight()) 
+			snooze(20);
+		
+		Sound.beep();
+		if(robot.lineHitRight()) {
+			robot.pivotLeft(); //Backwards
+			while(!robot.lineHitLeft()) {
+				snooze(20);
+			}
+			robot.stopMotors();
+		}
+			
+		else if(robot.lineHitLeft())	{
+			robot.pivotRight(); //Backwards
+			while(!robot.lineHitRight()) {
+				snooze(20);
+			}
+			robot.stopMotors();
+		}
+		
+		
+	}
+	
+	private void waitForAnyLineHit() {
+		while(!robot.lineHitLeft() && !robot.lineHitRight()) 
+			snooze(20);
+		Sound.beep();
+	}
+	
+	private void waitForLeftLineHit() {
+		
+	}
+	
+	public void waitForRightLineHit() {
+		
+	}
+	
+	/**
+	 * Sleep the thread for some milliseconds
+	 * @param milliseconds
+	 */
+	private void snooze(int milliseconds) {
+		try { Thread.sleep(milliseconds); } catch (InterruptedException e) { e.printStackTrace(); }
+	}
+	
+}

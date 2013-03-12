@@ -1,0 +1,58 @@
+package odometry;
+
+import lejos.nxt.Sound;
+import lejos.util.Timer;
+import lejos.util.TimerListener;
+import robot.Robot;
+
+public class OdometerCorrection implements TimerListener {
+	//TODO: There needs to be an ongoing correction for the robot to increase the pathfinding accuracy 
+	
+	private Timer correctionTimer;
+	private Robot robot;
+	private Odometer odometer;
+	
+	public OdometerCorrection(int period, Robot r, Odometer odo) {
+		this.correctionTimer = new Timer(period, this);
+		this.robot = r;
+		this.odometer = odo;
+	}
+	
+	@Override
+	public void timedOut() {
+		
+		// Simple Grid Correction in positive y
+		//double theta1, theta2, tick1, tick2; 
+		
+		if(robot.lineHitLeft() || robot.lineHitRight()) {
+			double tick = robot.getY();
+			if(tick > -5 && tick < 5)
+				robot.setY(0);
+			else if(tick > 25 && tick < 35)
+				robot.setY(30);
+			else if(tick > 55 && tick < 65)
+				robot.setY(60);
+			else if(tick > 115 && tick < 125)
+				robot.setY(120);
+			else if(tick > 145 && tick < 155)
+				robot.setY(150);
+			Sound.twoBeeps();
+		}
+		
+	}
+	
+	/**
+	 * Starts the odometer correction
+	 */
+	public void startTimer() {
+		correctionTimer.start();
+	}
+	
+	/**
+	 * Stops the odometer correction
+	 */
+	public void stopTimer() {
+		correctionTimer.stop();
+	}
+	
+}

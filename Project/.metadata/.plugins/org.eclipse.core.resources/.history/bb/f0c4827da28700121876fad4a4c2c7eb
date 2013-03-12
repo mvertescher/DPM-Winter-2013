@@ -1,0 +1,17 @@
+package pathfinding;
+
+/**
+ * GridMap.java 
+ * 
+ * Hardcoded map of nodes to represent the DPM 9x9 tile square grid
+ * 
+ * @author Matthew Vertescher
+ *
+ */
+public class GridMap {
+	
+	public GridMap() {
+		
+	}
+	
+}

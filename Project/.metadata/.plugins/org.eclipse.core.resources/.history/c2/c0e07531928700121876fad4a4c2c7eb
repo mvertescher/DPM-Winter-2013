@@ -1,0 +1,33 @@
+package experimental;
+
+import lejos.robotics.subsumption.Behavior;
+
+public class Avoid implements Behavior {
+
+	private CricketBot bot;
+	
+	public Avoid(CricketBot b) {
+		this.bot = b;
+	}
+	
+	
+	@Override
+	public boolean takeControl() {
+		return bot.obstacleDetected() && ;
+	}
+
+	@Override
+	public void action() {
+		bot.turnToPoint(30,30);
+		
+		// Log obstacle
+		
+		// Travel path
+	}
+
+	@Override
+	public void suppress() {
+		bot.stopMoving();
+	}
+
+}

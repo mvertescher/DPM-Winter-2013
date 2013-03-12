@@ -1,0 +1,6 @@
+package states;
+
+public interface State {
+	public StateID id;
+	private Robot robot;
+}
