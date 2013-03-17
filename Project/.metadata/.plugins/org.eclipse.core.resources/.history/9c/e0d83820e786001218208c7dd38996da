@@ -1,8 +1,0 @@
-package robot;
-
-public class Constants {
-	
-	public final double LEFT_RADIUS = 2.80, RIGHT_RADIUS = 2.80, WIDTH = 16.3;
-	
-	
-}

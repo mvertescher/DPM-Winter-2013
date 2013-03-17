@@ -1,0 +1,23 @@
+1363036331108	Rename method 'rotateImmidiate'
+1363212403110	Rename resource 'testsrc'
+1363212408789	Move folder
+1363212427025	Delete element
+1363212449630	Move package
+1363299238274	Delete element
+1363299275669	Move compilation unit
+1363299288305	Move package
+1363299290926	Move file
+1363299294842	Move file
+1363299301477	Delete element
+1363305010995	Rename local variable 'rightHit'
+1363372436503	Move compilation units
+1363373619113	Move file
+1363373631312	Delete element
+1363375779678	Rename local variable 'theta1'
+1363378294730	Rename local variable 'mattbot'
+1363381855483	Rename type 'OdometerCorrectionTest'
+1363381885346	Delete elements
+1363382148409	Rename type 'Calibration'
+1363382771588	Delete elements
+1363382810027	Rename type 'PathFollowingTest'
+1363449396390	Move compilation units

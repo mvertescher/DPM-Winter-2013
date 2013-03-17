@@ -1,7 +1,0 @@
-package states;
-
-public interface State {
-	public StateID id;
-	
-	
-}

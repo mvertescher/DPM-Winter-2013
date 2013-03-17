@@ -1,8 +1,0 @@
-package states;
-
-import robot.Robot;
-
-public interface State {
-	public StateID id;
-	Robot robot;
-}

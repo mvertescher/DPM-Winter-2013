@@ -1,8 +1,0 @@
-package odometry;
-
-public class OdometerCorrection {
-	//TODO: There needs to be an ongoing correction for the robot to increase the pathfinding accuracy 
-	
-	public void 
-	
-}

@@ -1,7 +1,0 @@
-package states;
-
-abstract class State {
-	//public StateID id;
-	
-	//public State()
-}

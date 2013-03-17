@@ -1,0 +1,540 @@
+package robot;
+
+import navigation.MotorController;
+import navigation.Navigator;
+import odometry.Odometer;
+import odometry.correction.OdometerCorrection;
+import pathfinding.Pathfinder;
+import robot.states.Avoiding;
+import robot.states.StateController;
+import robot.states.Travelling;
+import sensors.SensorController;
+import subsumption.Attacker;
+import lejos.geom.Point;
+import lejos.nxt.LCD;
+import lejos.nxt.NXTRegulatedMotor;
+import lejos.nxt.Sound;
+import localization.LocalizationController;
+
+/**
+ * Robot.java
+ * 
+ * Models an autonomous robot. 
+ * 
+ * @author Matthew Vertescher
+ *
+ */
+public class Robot {
+
+	public NXTRegulatedMotor leftMotor, rightMotor;
+	private NXTRegulatedMotor leftFlywheelMotor, rightFlywheelMotor;
+	
+	/**
+	 * Mechanical Robot Constants
+	 */
+	public final double LEFT_RADIUS = Constants.LEFT_RADIUS, RIGHT_RADIUS = Constants.RIGHT_RADIUS, WIDTH = Constants.WIDTH;
+	
+	/**
+	 * The Robot's Odometer 
+	 */
+	public Odometer odometer;
+	
+	/**
+	 * A simple grid correction
+	 */
+	private OdometerCorrection gridCorrection;
+	
+	/**
+	 * LCD Display Timer Listener
+	 */
+	public LCDUpdater display; 
+	
+	/**
+	 * The robot's navigation system
+	 */
+	public Navigator navigator;
+	
+	/**
+	 * The robot's sensor system
+	 */
+	private SensorController sc;
+	
+	/**
+	 * The robot's pathfinder
+	 */
+	private Pathfinder pathfinder;
+	
+	/**
+	 * The robot's state controller
+	 */
+	private StateController states;
+	
+	/**
+	 * The robot's localization controller
+	 */
+	private LocalizationController lc;
+	
+	/**
+	 * Basic Constructor
+	 */
+	public Robot() {
+		leftMotor = Constants.LEFT_MOTOR;
+		rightMotor = Constants.RIGHT_MOTOR;
+		
+		odometer = new Odometer(25, leftMotor, rightMotor, LEFT_RADIUS, WIDTH);
+		gridCorrection = new OdometerCorrection(25,this,odometer);
+		display = new LCDUpdater(25, odometer);
+		navigator = new Navigator(this, leftMotor, rightMotor, LEFT_RADIUS, RIGHT_RADIUS, WIDTH);
+		sc = new SensorController();
+		pathfinder = new Pathfinder(this);
+		states = new StateController(this);
+		lc = new LocalizationController(this,null); // NASTY NULL POINTER.
+	}
+
+	/**
+	 * Start odometer
+	 */
+	public void startOdometer() {
+		odometer.startTimer();
+	}
+	
+
+	
+	/**
+	 * Start display
+	 */
+	public void startDisplay() {
+		display.startTimer();
+	}
+	
+	/**
+	 * Main method for robot's execution thread
+	 */
+	public void begin() {
+		
+		//mc.setCombinedSpeed(100);
+		//mc.setAcceleration(1000);
+		
+		Attacker bot = new Attacker(this);
+	
+		this.startLightTimers();
+		//this.startUltrasonicTimers();
+		
+		this.startGridCorrection();
+		
+		snooze(1000);
+		
+		//lc.localize();
+		//navigator.rotateImmediate(-90);
+		//navigator.moveImmediatelyBy(15);
+		//navigator.rotateImmediate(-90);
+		//navigator.moveForwardUntilStop();
+		//this.moveToPoint(new Point(0,120));
+		
+		/*
+		boolean rightHitFirst = false;
+		
+		// assume northeast
+		Point[] points = new Point[4];
+		while(!sc.lineHitLeft() && !sc.lineHitRight()) 
+			snooze(30);
+		if (sc.lineHitRight())
+			rightHitFirst = true;
+		points[0] = new Point((float)odometer.getX(),(float)odometer.getY());
+		Sound.twoBeeps();
+		//snooze(50);
+		
+		if(rightHitFirst){
+			while(!sc.lineHitLeft()) 
+				snooze(30);
+			points[1] = new Point((float)odometer.getX(),(float)odometer.getY());
+			Sound.twoBeeps();
+		}
+		else if(!rightHitFirst){
+			while(!sc.lineHitRight()) 
+				snooze(30);
+			points[1] = new Point((float)odometer.getX(),(float)odometer.getY());
+			Sound.twoBeeps();
+		}
+		//Sound.twoBeeps();
+		
+		
+		/*
+		while(!sc.lineHitLeft() && !sc.lineHitRight()) 
+			snooze(30);
+		points[2] = new Point((float)odometer.getX(),(float)odometer.getY());
+		Sound.twoBeeps();
+		snooze(100);
+		
+		while(!sc.lineHitLeft() && !sc.lineHitRight()) 
+			snooze(30);
+		points[3] = new Point((float)odometer.getX(),(float)odometer.getY());
+		Sound.twoBeeps();
+		snooze(100);
+		*//*
+		navigator.stopMotors();
+		float dX = points[1].x - points[0].x;
+		float dY = points[1].y - points[0].y;
+		
+		double ptpd = Math.sqrt(Math.pow(dX,2)+Math.pow(dY,2));
+		
+		LCD.drawString("dX:              ", 0, 4);
+		LCD.drawString("dX: "+dX, 0, 4);
+		LCD.drawString("dY:              ", 0, 5);
+		LCD.drawString("dY: "+dY, 0, 5);
+		snooze(5000);
+		
+		// Trig calculation 
+		//double theta1 = Math.atan2(points[1].y - points[0].y,points[1].x - points[0].x);
+		//double theta2 = Math.atan2(points[3].x - points[2].x, points[3].y - points[2].y);
+		//double averageTheta = (theta1 + theta2) / 2;
+		
+		double theta1 = Math.asin((ptpd/2)/(7));
+		if (rightHitFirst)
+			theta1 = -theta1;
+		
+		
+		LCD.drawString("TC:              ", 0, 3);
+		LCD.drawString("TC: "+Math.toDegrees(theta1)+ "Degrees", 0, 3);
+		
+		
+		odometer.setTheta(Math.toDegrees(theta1));
+		
+		//thetaBasedPoint = new Point();
+		
+		
+		
+		
+		snooze(1000);*/
+		//navigator.stopMotors();
+		//navigator.turnToHeading(90);
+		//snooze(30000);
+		//navigator.moveImmediatelyBy(30);
+		//snooze(1000);
+		//navigator.turnToHeading(90);
+		navigator.rotateImmediate(-90);
+		snooze(1000);
+		navigator.moveImmediatelyBy(30);
+		
+		/*snooze(1000);
+		gridCorrection.stopTimer();
+		snooze(1000);
+		navigator.travelForwardsToPoint(new Point(0,0));
+		snooze(1000);
+		navigator.turnToPoint(new Point(0,90));
+		*/
+		//if(sc.lineHitLeft())
+		
+		//else if(sc.lineHitRight())
+		
+		
+		snooze(30000);
+		
+		//navigator.setSpeed(100);
+		//navigator.travelForwardsToPoint(new Point(0,0));
+		//navigator.turnToPoint(new Point(0,0));
+		
+		
+		
+		
+		
+		//pathfinder.getOptimalPathToPoint(new Point(15,75));
+		//navigator.travelPath(pathfinder.getOptimalPathToPoint(new Point(15,75)));
+		
+		//this.travellingState().travelTo(15,75);
+		
+
+		
+		Sound.beepSequenceUp();
+		navigator.stopMotors();
+		
+		//navigator.moveForwardUntilStop();
+		//while (this.getLeftUltrasonicDistance() > 20 && this.getRightUltrasonicDistance() > 20) 
+			//snooze(30);
+		//navigator.stopMotors();
+		//this.moveToPoint(new Point(60,0));
+		//watchForDetection();
+		
+		
+		
+		
+		snooze(3000);
+		
+		navigator.stopMotors();
+		
+		System.exit(0);
+		
+	}
+	
+	/**
+	 * Start odometry 
+	 */
+	public void startGridCorrection() {
+		gridCorrection.startTimer();
+	}
+	
+	
+	// MOVED TO ABSTRACT BOT
+	private void moveToPoint(Point p) {
+		navigator.turnToPoint(p);
+		navigator.moveForwardUntilStop();
+		while (!navigator.atDestination(p) && !this.obstacleDetected()) 
+			snooze(30);
+		navigator.stopMotors();
+		
+	}
+	
+	
+	/*
+	public Localizing localizingState() {
+		return states.localizingState();
+	}
+	*/
+	public Travelling travellingState() {
+		return states.travellingState();
+	}
+	
+	public Avoiding avoidingState() {
+		return states.avoidingState();
+	}
+
+	/**
+	 * Starts the ultrasonic timers
+	 */
+	public void startUltrasonicTimers() {
+		sc.startLeftUltrasonicTimer();
+		sc.startRightUltrasonicTimer();
+	}
+	
+	/**
+	 * Stops the ultrasonic timers
+	 */
+	public void stopUltrasonicTimers() {
+		sc.stopLeftUltrasonicTimer();
+		sc.stopRightUltrasonicTimer();
+	}
+	
+	/**
+	 * Returns the distance from the front ultrasonic timer 
+	 * @return
+	 */
+	public int getLeftUltrasonicDistance() {
+		return sc.getLeftUltrasonicTimerDistance();
+	}
+	
+	/**
+	 * Returns the distance from the front ultrasonic timer 
+	 * @return
+	 */
+	public int getRightUltrasonicDistance() {
+		return sc.getRightUltrasonicTimerDistance();
+	}
+
+	/**
+	 * Start light timers
+	 */
+	public void startLightTimers() {
+		this.sc.startLeftLightTimer();
+		this.sc.startRightLightTimer();
+	}
+	
+	/**
+	 * Stop light timers
+	 */
+	public void stopLightTimers() {
+		this.sc.stopLeftLightTimer();
+		this.sc.stopRightLightTimer();
+	}
+	
+	
+	public synchronized boolean lineHitLeft() {
+		return this.sc.lineHitLeft();
+	}
+	
+	public synchronized boolean lineHitRight() {
+		return this.sc.lineHitRight();
+	}
+	
+	
+	/**
+	 * Wrapper method to get the robots current x coordinate from the odometer
+	 * @return double x
+	 */
+	public double getX() {
+		return odometer.getX();
+	}
+	
+	/**
+	 * Sets the x coordinate of the robot
+	 * @param x
+	 */
+	public void setX(double x) {
+		this.odometer.setX(x);
+	}
+	
+	/**
+	 * Wrapper method to get the robots current y coordinate from the odometer
+	 * @return double y
+	 */
+	public double getY() {
+		return odometer.getY();
+	}
+	
+	/**
+	 * Sets the y coordinate of the robot
+	 * @param y
+	 */
+	public void setY(double y) {
+		this.odometer.setY(y);
+	}
+	
+	/**
+	 * Wrapper method to get the robots current theta coordinate from the odometer
+	 * @return double theta
+	 */
+	public double getTheta() {
+		return odometer.getTheta();
+	}
+	
+	/**
+	 * Sets the theta of the robot
+	 * @param y
+	 */
+	public void setTheta(double t) {
+		this.odometer.setTheta(t);
+	}
+	
+	/**
+	 * Have the robot localize 
+	 */
+	public void localize() {
+		//TODO:LOCALIZE
+		Sound.beepSequence();
+		snooze(1000);
+	}
+	
+	/**
+	 * Wrapper method for the robot to turn to a point
+	 * @param x
+	 * @param y
+	 */
+	public void turnToPoint(double x, double y) {
+		navigator.turnToPoint(new Point((float)x,(float)y));
+	}
+	
+	/**
+	 * Rotate Immediate, polar theta
+	 * @param t
+	 */
+	public void rotateImmediate(double t) {
+		navigator.rotateImmediate(t);
+	}
+	
+	/**
+	 * Wrapper method to have the robot move forward until a stopMotors() is called
+	 */
+	public void moveForwardUntilStop() {
+		navigator.moveForwardUntilStop();
+	}
+	
+	/**
+	 * Pivot left
+	 */
+	public void pivotLeft() {
+		navigator.pivotLeft();
+	}
+	
+	/**
+	 * Pivot right 
+	 */
+	public void pivotRight() {
+		navigator.pivotRight();
+	}
+	
+	/**
+	 * Stops the robot immediately 
+	 */
+	public void stopMotors() {
+		navigator.stopMotors();
+	}
+	
+	/**
+	 * Set the speed of the robot
+	 * @param i
+	 */
+	public void setSpeed(int s) {
+		navigator.setSpeed(s);	
+	}
+	
+	/**
+	 * Check if the robot is at its destination
+	 * @param p
+	 * @return true if at destination
+	 */
+	public boolean isAtDestination(Point p) {
+		return navigator.atDestination(p);
+	}
+	
+	
+	/**
+	 * Moves the robot forward by a distance
+	 * @param d
+	 */
+	public void moveImmediatelyBy(double d) {
+		navigator.moveImmediatelyBy(d);
+	}
+	
+	/**
+	 * Backs the robot to a point
+	 * @param x
+	 * @param y
+	 */
+	public void backupToPoint(double x, double y) {
+		navigator.travelBackwardsToPoint(new Point((float) x,(float) y));
+	}
+	
+	/**
+	 * Check if the robot detects an obstacle 
+	 * @return true if an obstacle is in range
+	 */
+	public boolean obstacleDetected() {
+		return (this.getLeftUltrasonicDistance() < Constants.OBSTACLE_DETECTION_RANGE || this.getRightUltrasonicDistance() < Constants.OBSTACLE_DETECTION_RANGE);
+	}
+	
+	/**
+	 * Maps an adjacent obstacle  
+	 */
+	public void mapAdjecentObstacle(CompassDirection cd) {
+		pathfinder.removeAdjacentNode(cd);
+	}
+	
+	/**
+	 * Returns a compass approximation of the robot's heading
+	 * @return
+	 */
+	public CompassDirection getDirection() {
+		if (Math.cos(Math.toRadians(this.getTheta())) > .707)
+			return CompassDirection.NORTH;
+		else if (Math.cos(Math.toRadians(this.getTheta())) < -.707)
+			return CompassDirection.SOUTH;
+		else if (Math.sin(Math.toRadians(this.getTheta())) > .707)
+			return CompassDirection.EAST;
+		else if (Math.sin(Math.toRadians(this.getTheta())) < -.707)
+			return CompassDirection.WEST;
+		
+		Sound.buzz();
+		return null;	
+	}
+	
+	
+	/**
+	 * Sleep the thread for some milliseconds
+	 * @param milliseconds
+	 */
+	private void snooze(int milliseconds) {
+		try { Thread.sleep(milliseconds); } catch (InterruptedException e) { e.printStackTrace(); }
+	}
+
+
+	
+}

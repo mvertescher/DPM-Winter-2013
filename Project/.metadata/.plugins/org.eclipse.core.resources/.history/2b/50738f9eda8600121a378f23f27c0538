@@ -1,9 +1,0 @@
-package states;
-
-import robot.Robot;
-
-public interface State {
-	
-	
-	
-}
