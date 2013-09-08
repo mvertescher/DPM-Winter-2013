@@ -1,7 +1,7 @@
 DPM-Winter-2013
 ======================
 
-Java Legos NXT project for an autonomus robot designed to play an organized game with another robot based upon project specifications.
+Java Legos NXT project for an autonomous robot designed to play an organized game with another robot based upon project specifications.
 
 
 
