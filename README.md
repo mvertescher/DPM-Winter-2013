@@ -6,9 +6,8 @@ Java Legos NXT project for an autonomous robot designed to play an organized gam
 Design Project Specifications Summary
 The basic task has been described as follows:
 Construct an autonomous robot to play a one-on-one game that is a cross between soccer and basketball. The robot must be able to play either forward or defense and be capable of navigating the field without hitting obstacles. Instructions are received via Bluetooth radio prior to the game.
-Attackers will try to naviagate to the ball dispencer, retreve a ball, and shoot on goal.
+Attackers will try to naviagate to the ball dispenser, retreve a ball, and shoot on goal.
 Defenders will try to navigate to a defence position and defend the goal from attackers. 
-
 
 
 
