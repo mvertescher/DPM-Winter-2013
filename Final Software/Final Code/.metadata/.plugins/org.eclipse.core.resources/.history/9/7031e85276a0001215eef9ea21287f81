@@ -1,0 +1,121 @@
+package remotemain;
+
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import lejos.nxt.Button;
+import lejos.nxt.LCD;
+import lejos.nxt.Sound;
+import lejos.nxt.comm.BTConnection;
+import lejos.nxt.comm.Bluetooth;
+
+/**
+ * Remote.java
+ * 
+ * Main class for the remote brick.
+ * Waits for a new bluetooth connection.
+ * 
+ * @author Felix Dube
+ *
+ */
+public class Remote {
+	
+	private static Flywheels launcher;
+	
+	public static void main(String [] args) throws Exception {
+		String connected = "Connected";
+		String waiting = "Waiting...";
+		String closing = "Closing...";
+		
+		launcher = new Flywheels();
+		
+		while (true){
+			LCD.drawString(waiting,0,0);
+			LCD.refresh();
+			
+			BTConnection btc = Bluetooth.waitForConnection();
+			LCD.clear();
+			LCD.drawString(connected,0,0);
+			LCD.refresh();
+			
+			DataInputStream dis = btc.openDataInputStream();
+			DataOutputStream dos = btc.openDataOutputStream();		//FELIZ
+			
+			
+			int numberOfBalls;
+			
+			/**
+			 * shooting position form the goal in tiles
+			 */
+			int tilesToShoot;
+						
+			boolean done = false;
+			
+			while(!done){
+				Sound.beep();
+				numberOfBalls = dis.readInt();
+				Sound.buzz();
+				
+				Sound.beep();
+				tilesToShoot = dis.readInt();
+				Sound.buzz();
+				
+				switch(tilesToShoot){
+
+					case 5:
+						Flywheels.changeSpeed(80,80 );
+						break;
+					case 6:
+						Flywheels.changeSpeed(80,80 );
+						break;
+					case 7:
+						Flywheels.changeSpeed(85,80 );
+						break;
+					case 8:
+						Flywheels.changeSpeed(90,80 );
+						break;
+					case 9:
+						Flywheels.changeSpeed(95,80 );
+						break;
+					case 10:
+						Flywheels.changeSpeed(100,80 );
+						break;
+					default:
+						Flywheels.changeSpeed(90,80 );
+						break;
+				}
+			
+				
+				//if(shootingPositionX == 3 && shootingPositionY == 8){
+					//Flywheels.changeSpeed(100,90 );
+				//}
+				
+				
+			
+					
+				for (int i = 0; i < numberOfBalls; i++){
+						
+					LCD.clear();
+					LCD.drawString("Shooting",0,0);
+					LCD.refresh();
+					
+					launcher.fire();
+					
+					Thread.sleep(2000);		
+				}
+				
+				try {						//FELIZ
+					dos.writeInt(0);
+					dos.flush();
+				} catch (IOException ioe) {
+					Sound.buzz();
+					Sound.buzz();
+					Sound.buzz();
+				}
+				
+				done = true;
+				btc.close();
+			}
+		}
+	}
+}

@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Move package &apos;main&apos; to &apos;Final/remote&apos;&#x0D;&#x0A;- Original project: &apos;Remote&apos;&#x0D;&#x0A;- Destination element: &apos;Final/remote&apos;&#x0D;&#x0A;- Original element: &apos;Remote/src/main&apos;&#x0D;&#x0A;- Update references to refactored element" description="Move package" destination="=Final/remote" element1="/src&lt;main" flags="589830" fragments="1" id="org.eclipse.jdt.ui.move" policy="org.eclipse.jdt.ui.movePackages" stamp="1364146659158" version="1.0"/>
+</session>

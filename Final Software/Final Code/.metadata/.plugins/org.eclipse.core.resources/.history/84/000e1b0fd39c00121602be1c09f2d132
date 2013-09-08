@@ -1,0 +1,33 @@
+package odometry.correction;
+
+import robot.Constants;
+import lejos.nxt.LightSensor;
+
+public class LightSensorControl {
+
+	private LightSensor lsl, lsr;
+	private int[] left
+	private final int sampleSize = 3; 
+	
+	public LightSensorControl() {
+		this.lsl = new LightSensor(Constants.LIGHT_LEFT,true);
+		this.lsr = new LightSensor(Constants.LIGHT_RIGHT,true);
+		
+		this.leftSample = new int 
+		this.rightSample
+	}
+	
+	public boolean leftLineHit() { 
+		
+	}
+	
+	public boolean rightLineHit() {
+		
+	}
+	
+	private void initSample(LightSensor ls, int[] sample) {
+		for (int = 0; i < sampleSize; i++) {
+			sample[i] = ls.getNormalizedLightValue();
+	}
+	
+}

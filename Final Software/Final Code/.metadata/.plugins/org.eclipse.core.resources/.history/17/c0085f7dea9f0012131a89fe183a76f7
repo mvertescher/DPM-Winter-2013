@@ -1,0 +1,139 @@
+package remotemain;
+
+import lejos.nxt.Button;
+import lejos.nxt.LCD;
+import lejos.nxt.Motor;
+import lejos.nxt.NXTRegulatedMotor;
+
+/**
+ * Launcher.java
+ * Main runnable class for bluetooth launching
+ * @author Matthew Vertescher
+ *
+ */
+public class Launcher {
+
+
+	public Launcher() {
+
+		// Set speeds of motors
+		for (NXTRegulatedMotor motor : new NXTRegulatedMotor[] { Motor.A,
+				Motor.B, Motor.C }) {
+			motor.setSpeed(2500); //500
+		}
+			
+	}
+
+	/**
+	 * Fire ball protocol  
+	 */
+	public void fire() {
+		startMotors();
+		snooze(2000);
+		loadBall(Motor.C);
+		snooze(2000);
+		System.exit(0);
+	}
+	
+	/**
+	 * Start motors
+	 */
+	private static void startMotors() {
+		Motor.A.backward();
+		Motor.B.backward();
+	}
+	
+	/**
+	 * FELIZ  
+	 * Change Motor Speed
+	 */
+	
+	private static void changeSpeed(int flyWheelSpeed, int ArmSpeed){
+		
+		for (NXTRegulatedMotor motor : new NXTRegulatedMotor[] { Motor.A,
+				Motor.B }) {
+			motor.setSpeed(flyWheelSpeed); 
+		}
+		
+		for (NXTRegulatedMotor motor : new NXTRegulatedMotor[] { Motor.C }) {
+			motor.setSpeed(ArmSpeed); 
+		}
+	}
+	
+	
+	/**
+	 * Load ball into motors
+	 */
+	private static void loadBall(NXTRegulatedMotor loadMotor) {
+		loadMotor.setSpeed(100);  
+		snooze(100);
+		loadMotor.rotate(-180);
+		snooze(3000);
+		loadMotor.rotate(-180);
+	}
+	
+	/**
+	 * Manuel prompt for data collection and testing
+	 */
+	private static void manualPrompt() {
+		int buttonChoice;
+		do {
+			// clear the display
+			LCD.clear();
+
+			// ask the user whether the motors should drive in a square or float
+			LCD.drawString("< Left | Right >", 0, 0);
+			LCD.drawString("       |        ", 0, 1);
+			LCD.drawString(" Float | Drive  ", 0, 2);
+			LCD.drawString("motors | motors ", 0, 3);
+			LCD.drawString("       |        ", 0, 4);
+
+			buttonChoice = Button.waitForAnyPress();
+		} while (buttonChoice != Button.ID_LEFT
+				&& buttonChoice != Button.ID_RIGHT);
+
+		if (buttonChoice == Button.ID_LEFT ) {
+			LCD.drawString("< Left | Right >", 0, 0);
+			LCD.drawString("                ", 0, 1);
+			LCD.drawString("     floating   ", 0, 2);
+			LCD.drawString("                ", 0, 3);
+			LCD.drawString("                ", 0, 4);
+			for (NXTRegulatedMotor motor : new NXTRegulatedMotor[] { Motor.A,
+					Motor.B, Motor.C }) {
+				motor.forward();
+				motor.flt();
+			}
+
+		}
+		else if (buttonChoice == Button.ID_RIGHT) {
+			LCD.drawString("< Left | Right >", 0, 0);
+			LCD.drawString("                ", 0, 1);
+			LCD.drawString("     moving     ", 0, 2);
+			LCD.drawString("                ", 0, 3);
+			LCD.drawString("                ", 0, 4);
+			
+			for (NXTRegulatedMotor motor : new NXTRegulatedMotor[] { Motor.A,
+					Motor.B, Motor.C }) {
+				motor.setSpeed(600);
+			}
+			buttonChoice = Button.waitForAnyPress();
+		}
+	}
+
+	/**
+	 * Wait for exit
+	 */
+	private static void waitForExit() {
+		while (Button.waitForAnyPress() != Button.ID_ESCAPE);
+		System.exit(0);
+	}
+	
+	/**
+	 * Sleep thread
+	 * @param milliseconds
+	 */
+	private static void snooze(int milliseconds) {
+		try { Thread.sleep(milliseconds);} catch (InterruptedException e) {e.printStackTrace();}
+	}
+}
+

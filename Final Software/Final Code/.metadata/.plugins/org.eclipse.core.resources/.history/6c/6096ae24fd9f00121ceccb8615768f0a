@@ -1,0 +1,63 @@
+package localization;
+
+import robot.Robot;
+
+
+/**
+ * LocalizationController.java
+ * 
+ * Controls all the localization protocols for the robot.
+ * 
+ * @author Matthew Vertescher
+ *
+ */
+public class LocalizationController {
+	
+	/**
+	 * Reference to robot
+	 */
+	private Robot robot;
+	
+	/**
+	 * Constructor 
+	 * @param r
+	 */
+	public LocalizationController(Robot r) {
+		this.robot = r;
+	}
+	
+	/**
+	 * Double line localize at a corner specified by an integer 1,2,3 or 4.
+	 * If a valid corner is not selected, this does nothing.
+	 * @param int c 
+	 */
+	public void doubleLineLocalization(int c) {
+		DoubleLineLocalization dll = null;
+		switch(c) {
+			case 1:
+				dll = new DoubleLineLocalization(robot,Corner.ONE);
+				break;
+			case 2:
+				dll = new DoubleLineLocalization(robot,Corner.TWO);
+				break;
+			case 3:
+				dll = new DoubleLineLocalization(robot,Corner.THREE);
+				break;
+			case 4:
+				dll = new DoubleLineLocalization(robot,Corner.FOUR);
+				break;
+		}
+		
+		if (dll != null)	
+			dll.localize();	
+	}
+		
+	/**
+	 * A simple line localize, correction cannnot be on
+	 */
+	public void lineLocalize() {
+		
+	}
+	
+	
+}

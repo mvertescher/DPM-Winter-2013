@@ -1,0 +1,83 @@
+package subsumption.behaviors;
+
+import subsumption.AbstractBot;
+import lejos.geom.Point;
+import lejos.robotics.subsumption.Behavior;
+
+/**
+ * Behavior for the robot to travel a series of points. 
+ * This should be the lowest priority above Shutdown.
+ * 
+ * @author Matthew Vertescher
+ *
+ */
+public class TravelPoints implements Behavior {
+
+	private AbstractBot bot;
+	private Point[] points;
+	private int current; 
+	private boolean suppressed = false; 
+	
+	private boolean[] reached;
+	
+	public TravelPoints(AbstractBot b, Point[] p) {
+		this.bot = b;
+		this.points = p;
+		this.current = 0;
+	}
+	
+	@Override
+	public boolean takeControl() {
+		if (this.current >= this.points.length)
+			return false;
+		
+		if (this.bot.doneShooting) {
+			
+			this.bot.
+		}
+			
+		
+		return (!this.bot.atDestination(points[current],false) && !this.bot.obstacleInPath);
+	}
+
+	@Override
+	public void action() {
+		this.suppressed = false;
+		
+		this.bot.travelOptimalPathToPoint(points[current]);
+		this.bot.moveToPointOnGrid(points[current]);
+		
+		//if(this.bot.atDestination(points[current])) {
+		if(this.bot.inTile(points[current])) {	
+			
+			// Determine which point is reached
+			if(points[current].equals(this.bot.defenseTilePoint()))
+				this.bot.inDefenseTile = true;
+			else if(points[current].equals(this.bot.ballDispenser()))
+				this.bot.atBallDispenser = true;
+			else if(points[current].equals(this.bot.shootingPosition()))
+				this.bot.inShootingPosition = true;
+			else if(points[current].equals(this.bot.endpoint()))
+				this.bot.atEndpoint = true;
+			
+			
+			current++;
+		}
+		
+		
+	}
+
+	@Override
+	public void suppress() {
+		// TODO Auto-generated method stub
+		if (this.suppressed = false) {
+			this.bot.stopMoving();
+			this.suppressed = true;
+		}	
+		
+	}
+
+	
+	
+	
+}

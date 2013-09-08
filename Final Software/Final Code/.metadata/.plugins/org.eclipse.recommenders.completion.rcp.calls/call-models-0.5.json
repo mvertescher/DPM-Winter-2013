@@ -1,0 +1,22 @@
+{
+  "E:\\ZOTHER STUFF\\MattBot-March-EDGE\\Final\\src": {
+    "location": "E:\\ZOTHER STUFF\\MattBot-March-EDGE\\Final\\src",
+    "status": "UNRESOLVED",
+    "error": "No class path info available for \u0027E:\\ZOTHER STUFF\\MattBot-March-EDGE\\Final\\src\u0027. Skipped."
+  },
+  "C:\\Program Files (x86)\\leJOS NXJ\\lib\\nxt\\classes.jar": {
+    "location": "C:\\Program Files (x86)\\leJOS NXJ\\lib\\nxt\\classes.jar",
+    "status": "UNRESOLVED",
+    "error": "No call model found for \u0027C:\\Program Files (x86)\\leJOS NXJ\\lib\\nxt\\classes.jar\u0027. Neither fingerprint \u00273ff1a698b9f7660a9429d743e9d271de28dfe0b6\u0027 nor symbolic name \u0027classes\u0027 are known."
+  },
+  "C:\\Users\\Jose\\Desktop\\FOR_JOSE\\APRIL9_DPM_CODE\\Final\\src": {
+    "location": "C:\\Users\\Jose\\Desktop\\FOR_JOSE\\APRIL9_DPM_CODE\\Final\\src",
+    "status": "UNRESOLVED",
+    "error": "No class path info available for \u0027C:\\Users\\Jose\\Desktop\\FOR_JOSE\\APRIL9_DPM_CODE\\Final\\src\u0027. Skipped."
+  },
+  "E:\\ZOTHER STUFF\\FINAL-FINAL\\Final\\src": {
+    "location": "E:\\ZOTHER STUFF\\FINAL-FINAL\\Final\\src",
+    "status": "UNRESOLVED",
+    "error": "No class path info available for \u0027E:\\ZOTHER STUFF\\FINAL-FINAL\\Final\\src\u0027. Skipped."
+  }
+}

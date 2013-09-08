@@ -1,0 +1,214 @@
+package pathfinding;
+
+import java.util.ArrayList;
+
+import lejos.nxt.Sound;
+import lejos.robotics.pathfinding.Node;
+
+/**
+ * 
+ * Hardcoded map of nodes to represent the DPM 9x9 tile square grid
+ * 
+ * @author Matthew Vertescher
+ *
+ */
+public class GridMap {
+	
+	private Node nodes[][];
+	
+	private ArrayList <Node> removed; 
+	
+	/**
+	 * Basic constructor
+	 */
+	public GridMap() {
+		this.createGridNodesMap();
+		
+		this.removeOuterNodesForFinal();
+		this.removeTargetForFinal();
+		
+		this.removed = new ArrayList<Node>();
+	}
+	
+	/**
+	 * Creates the map of nodes
+	 */
+	public void createGridNodesMap() {	
+		nodes = new Node[12][12]; 
+
+		for (int i = 0; i < 12; i++) {
+			for (int j = 0; j < 12; j++) {
+				nodes[i][j] = new Node((30*i-15), (30*j-15));
+			}
+		}
+		
+		this.buildNeighbors();
+	}
+	
+	/**
+	 * Add all the neighbors
+	 */
+	private void buildNeighbors() {
+		Node n = null;
+		for (int i = 0; i < 12; i++) { 
+			for (int j = 0; j < 12; j++) { 
+				n = nodes[i][j];
+				
+				if (i != 0)
+					n.addNeighbor(nodes[i-1][j]);
+				if (j != 0)
+					n.addNeighbor(nodes[i][j-1]);
+				if (i != 11)
+					n.addNeighbor(nodes[i+1][j]);
+				if (j != 11)
+					n.addNeighbor(nodes[i][j+1]);			
+			}
+		}
+	}
+	
+	public void restoreNeighbor(double x, double y) {
+		Node n = this.getClosestNode(x,y);
+	}
+	
+	/**
+	 * Rebuilds the neighbors after a null pointer
+	 */
+	public void rebuildNeighbors() {
+		this.buildNeighbors();
+		this.removeOuterNodesForFinal();
+		this.removeTargetForFinal();
+		
+		for (Node n : this.removed)
+			this.removeNode(n);
+		
+	}
+	
+	
+	
+	/**
+	 * Returns the closest node to a point
+	 * @param x
+	 * @param y
+	 * @return Node
+	 */
+	public Node getClosestNode(double x, double y) {
+		int xInt = (int) x;
+		int yInt = (int) y;
+		int xDiv = ((xInt + 30) / 30);
+		int yDiv = ((yInt + 30) / 30);
+		
+		return nodes[xDiv][yDiv];
+	}
+	
+	/**
+	 * Get node based on indexes
+	 * @param i
+	 * @param js
+	 * @return Node (i,j)
+	 */
+	public Node getNode(int i, int j) {
+		return nodes[i][j];
+	}
+	
+	/**
+	 * Maps an obstacle by removing a node
+	 * @param x
+	 * @param y
+	 */
+	public void mapObstacleAtPoint(double x, double y) {
+		if (x > -25 && x < 325 && y > -25 && y < 325) {
+			Node n = this.getClosestNode(x,y);
+			if (!n.equals(null)) { 
+				this.removeNode(n);
+				if (!this.removed.contains(n))
+					this.removed.add(n);
+			}	
+			//Sound.twoBeeps();                               
+		}	
+	}                                         
+	
+	/**
+	 * Maps an obstacle at a particular node
+	 * @param i
+	 * @param j
+	 */
+	public void mapObstacleAtNode(int i, int j) {
+		this.removeNode(i,j);
+	}
+	
+	/**
+	 * Removes a node from the grid by emptying its neighbors 
+	 * @param i
+	 * @param j
+	 */
+	public void removeNode(int i, int j) {
+		//if (i > -1 &&  ) //NULL POINTER
+		Node n = nodes[i][j];
+		if (!n.equals(null))
+			this.removeNode(nodes[i][j]);
+	}
+	
+	/**
+	 * Removes a node from the grid by emptying its neighbors
+	 * @param n
+	 */
+	public void removeNode(Node n) {
+		ArrayList<Node> c = (ArrayList<Node>) n.getNeighbors();
+		c.clear();
+	}
+	
+	/**
+	 * Remove the edge between two nodes
+	 * @param Node n
+	 * @param Node m
+	 */
+	public void removeEdge(Node n, Node m) {
+		n.removeNeighbor(m);
+		m.removeNeighbor(n);
+	}
+	
+	
+	/**
+	 * Remove outer nodes for beta map
+	 */
+	private void removeOuterNodesForFinal() {
+		for (int i = 0; i < 12; i++) {
+			this.removeNode(nodes[0][i]);
+			this.removeNode(nodes[11][i]);
+		}
+		for (int i = 1; i < 11; i++) {
+			this.removeNode(nodes[i][0]);
+			this.removeNode(nodes[i][11]);
+		}
+	}
+	
+	/**
+	 * Remove the target for the final
+	 * @param w1, X width in tiles
+	 * @param w2, Y width in tiles
+	 */
+	public void removeTargetForFinal() {
+		this.removeNode(nodes[5][11]);
+		this.removeNode(nodes[6][11]);
+		this.removeNode(nodes[5][10]);
+		this.removeNode(nodes[6][10]);
+	}
+	
+	/**
+	 * Remove outer node for beta map
+	 */
+	private void removeOuterNodesForBeta() {
+		for (int i = 0; i < 12; i++) {
+			this.removeNode(nodes[0][i]);
+			this.removeNode(nodes[7][i]);
+		}
+		for (int i = 1; i < 7; i++) {
+			this.removeNode(nodes[i][0]);
+			this.removeNode(nodes[i][11]);
+		}
+	}
+	
+	
+	
+	
+}

@@ -1,0 +1,277 @@
+package pathfinding;
+
+import lejos.geom.Point;
+import lejos.nxt.Sound;
+import lejos.robotics.navigation.Waypoint;
+import lejos.robotics.pathfinding.AstarSearchAlgorithm;
+import lejos.robotics.pathfinding.Node;
+import lejos.robotics.pathfinding.Path;
+import robot.CompassDirection;
+import robot.Robot;
+
+/**
+ * Class dedicated to finding the optimal path to a point
+ * 
+ * @author Matthew Vertescher
+ *
+ */
+public class Pathfinder {
+	
+	private Robot robot;
+	private GridMap map;
+	private AstarSearchAlgorithm aStar;
+	
+	/**
+	 * Constructor 
+	 * @param r
+	 */
+	public Pathfinder(Robot r) {
+		this.robot = r;
+		this.map = new GridMap();
+		this.aStar = new AstarSearchAlgorithm();
+	}
+
+	/**
+	 * Finds the optimal path to a point
+	 * @param p
+	 * @return Path 
+	 */
+	public Path getOptimalPathToPoint(Point p) {
+		return this.getOptimalPath(this.getCurrentNode(),this.map.getClosestNode(p.x,p.y));
+	}
+	
+	
+	/**
+	 * Returns the closest node to the robot. 
+	 * @return current node 
+	 */
+	public Node getCurrentNode() {
+		return this.map.getClosestNode(robot.getX(),robot.getY());
+	}
+	
+	/**
+	 * Returns the closest node to the robot. 
+	 * @return current node 
+	 */
+	public Node getNode(Point p) {
+		return this.map.getClosestNode(p.getX(),p.getY());
+	}
+	
+	
+	/**
+	 * Returns the closest node to the robot as a point. 
+	 * @return current node as a point in cm 
+	 */
+	public Point getCurrentNodePoint() {
+		Node n = this.map.getClosestNode(robot.getX(),robot.getY());
+		return new Point(n.x,n.y);
+	}
+	
+	
+	/**
+	 * Returns the optimal path between two points
+	 * @param from
+	 * @param to
+	 * @return Path
+	 */
+	private Path getOptimalPath(Node from, Node to) {
+		// Not here
+		
+		Sound.beepSequenceUp();
+		try {Thread.sleep(3000);} catch (InterruptedException e) {e.printStackTrace();}
+		
+		if (from.getNeighbors().equals(null) || to.getNeighbors().equals(null)) {
+			Sound.buzz();
+			try {Thread.sleep(2000);} catch (InterruptedException e) {e.printStackTrace();}
+			Sound.buzz();
+			try {Thread.sleep(2000);} catch (InterruptedException e) {e.printStackTrace();}
+			
+		}
+		
+		Path path = aStar.findPath(from, to);
+		
+		try {
+			Waypoint end = path.get(path.size() - 1);
+		}
+		catch (NullPointerException e) {
+			Sound.beepSequence();
+			Sound.beepSequence();
+			Sound.beepSequence();
+			this.map.buildNeighbors();
+			path = aStar.findPath(from, to);
+			try {Thread.sleep(2000);} catch (InterruptedException ie) {ie.printStackTrace();}
+			
+		}
+		
+		Sound.twoBeeps();
+		try {Thread.sleep(1000);} catch (InterruptedException e) {e.printStackTrace();}
+		Sound.buzz();
+		try {Thread.sleep(3000);} catch (InterruptedException e) {e.printStackTrace();}
+		
+		
+		// Check for null pointer not here
+		//while (path.equals(null) || path.isEmpty() || !(path.get(path.size())) . ) {
+		/*while (end.equals(null) || end.x != to.x && end.y != to.y) {
+			//this.map.buildNeighbors();
+			//path = aStar.findPath(from, to);
+			Sound.beepSequence();
+			Sound.beepSequence();
+			Sound.beepSequence();
+			try {Thread.sleep(2000);} catch (InterruptedException e) {e.printStackTrace();}
+		}*/
+		
+		return path;
+	}
+	
+	/**
+	 * Removes a node in an adjacent tile
+	 * @param cmpdir
+	 */
+	public void removeAdjacentNode(CompassDirection cmpdir) {
+		double rX = robot.getX(), rY = robot.getY();
+		double nX = 0, nY = 0;
+		
+		switch (cmpdir) {
+			case NORTH:
+				//this.map.mapObstacleAtPoint(robot.getX(),robot.getY()+20);
+				nX = rX;
+				nY = rY + 30;
+				break;
+			case SOUTH:
+				//this.map.mapObstacleAtPoint(robot.getX(),robot.getY()-20);
+				nX = rX;
+				nY = rY - 30;
+				break;
+			case EAST:
+				//this.map.mapObstacleAtPoint(robot.getX()+20,robot.getY());
+				nX = rX + 30;
+				nY = rY;
+				break;
+			case WEST:
+				//this.map.mapObstacleAtPoint(robot.getX()-20,robot.getY());
+				nX = rX - 30;
+				nY = rY;
+				break;
+			default:
+				break;
+				
+		}
+		
+		if (!this.map.getClosestNode(nX,nY).equals(this.map.getClosestNode(rX,rY)))
+			this.map.mapObstacleAtPoint(nX,nY);
+	}
+	
+	/**
+	 * Removes the next node in an adjacent tile
+	 * @param cmpdir
+	 */
+	public void removeNextAdjacentNode(CompassDirection cmpdir) {
+		switch (cmpdir) {
+			case NORTH:
+				this.map.mapObstacleAtPoint(robot.getX(),robot.getY()+50);
+				break;
+			case SOUTH:
+				this.map.mapObstacleAtPoint(robot.getX(),robot.getY()-50);
+				break;
+			case EAST:
+				this.map.mapObstacleAtPoint(robot.getX()+50,robot.getY());
+				break;
+			case WEST:
+				this.map.mapObstacleAtPoint(robot.getX()-50,robot.getY());
+				break;
+			default:
+				break;
+				
+		}		
+	}
+	
+	/*
+	
+	 * Removes the target from the map.
+	 * Removes all four adjacent nodes to the target.
+	 * @param x line 
+	 * @param y line
+	 
+	public void removeTarget(double x,double y) {
+		//int x = 30 * i;
+		//int y = 30 * j;
+		
+		Node upperLeft = this.map.getClosestNode(x-15,y+15); 
+		Node upperRight = this.map.getClosestNode(x+15,y+15); 
+		Node lowerLeft = this.map.getClosestNode(x-15,y-15); 
+		Node lowerRight = this.map.getClosestNode(x+15,y-15); 
+		
+		this.map.removeNode(upperLeft);
+		this.map.removeNode(upperRight);
+		this.map.removeNode(lowerLeft);
+		this.map.removeNode(lowerRight);
+		
+		//this.map.removeEdge(upperLeft,lowerLeft);
+		//this.map.removeEdge(upperRight,lowerRight);
+	}*/
+	
+	
+	/**
+	 * Removes the bounce area
+	 * @param w1, X width in tiles
+	 * @param w2, Y width in tiles
+	 */
+	private void removeBounceZone(int w1, int w2) {
+		/*int hx = (w1 * 30) / 2; 
+		int hy = (w2 * 30) / 2;
+		
+		int sx = (150 - hx) + 15;
+		int sy = (300 - hy) + 15; 
+		
+		int fx = 150 + hx;
+		int fy = 300;		
+		
+		for (int i = sx; i < fx; i = (i + 30)) {
+			for (int j = sy; j < fy; j = (j + 30)) {
+				this.map.mapObstacleAtPoint(i,j);
+			}
+		}*/
+		//this.map.removeTargetForFinal(w1,w2);
+		
+		for (int i = (6 - (w1/2)); i < (6 + (w1/2)); i++) {
+			for (int j = (10 - w2); j <= 10; j++) {
+				this.map.removeNode(i,j);
+			}
+		}
+		
+	}
+	
+	public void removeAttackerNodes(int d1, int w1, int w2) {
+		this.removeBounceZone(w1,w2);
+		
+		// Forward line in tiles from 0
+		int fLine = 10 - d1;
+				
+		// Remove part of the defender zone
+		for (int i = 3; i < 9; i++) {
+			for (int j = fLine; j < 11; j++) {
+				this.map.removeNode(i,j);
+			}
+		}	
+		
+	}
+	
+	public void removeDefenderNodes(int d1, int w1, int w2) {
+		this.removeBounceZone(w1,w2);
+		
+		// Forward line in tiles from 0
+		int fLine = 10 - d1;
+		
+		// Remove part of the attacker zone
+		for (int i = 3; i < 9; i++) {
+			for (int j = 2; j < (fLine + 1); j++) {
+				this.map.removeNode(i,j);
+			}
+		}	
+		
+	}
+	
+	
+	
+	
+}

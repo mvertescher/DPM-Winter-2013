@@ -1,0 +1,40 @@
+package subsumption;
+
+import lejos.geom.Point;
+import lejos.robotics.subsumption.Arbitrator;
+import lejos.robotics.subsumption.Behavior;
+import robot.Robot;
+import subsumption.behaviors.Avoid;
+import subsumption.behaviors.Defend;
+import subsumption.behaviors.Localize;
+import subsumption.behaviors.TravelPoints;
+import subsumption.behaviors.Shutdown;
+
+public class Defender extends AbstractBot {
+
+	public Defender(Robot r) {
+		super(r);
+		
+		Point[] pts = new Point[1];
+		pts[0] = r.defenseTile();
+		
+		Behavior[] b = new Behavior[5];  
+		
+		double time = System.
+		
+		
+		
+		b[4] = new Localize(this, r.firstPoint());
+		b[3] = new Avoid(this);
+		b[2] = new TravelPoints(this,pts);
+		b[1] = new Defend(this);
+		b[0] = new Shutdown(this);		
+		
+		this.setArbitrator(new Arbitrator(b,false));
+	}
+
+	// 1. Localize
+	// 2. Move to defense area  
+	// 3. Defend? -- until times up 
+	
+}

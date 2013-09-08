@@ -1,0 +1,467 @@
+package subsumption;
+
+import lejos.geom.Point;
+import lejos.nxt.Sound;
+import lejos.robotics.navigation.Waypoint;
+import lejos.robotics.pathfinding.Path;
+import lejos.robotics.subsumption.Arbitrator;
+import robot.Constants;
+import robot.Robot;
+
+/**
+ * AbstractBot.java
+ * 
+ * Define a set of methods used to control a robot.
+ * 
+ * @author Matthew Vertescher
+ *
+ */
+public abstract class AbstractBot {
+	
+	private Robot robot; 
+	private Arbitrator arbitrator;
+	private boolean lost = true;
+	
+	/**
+	 * Signals that an obstacle is in the path of the robot
+	 */
+	public boolean obstacleInPath = false;
+	
+	/**
+	 * Signals that the robot is at the ball dispenser 
+	 */
+	public boolean atBallDispenser = false;
+	
+	/**
+	 * Signals that the robot has a ball
+	 */
+	public boolean hasBall = false; 
+	
+	/**
+	 * Signals that the robot is in its shooting position 
+	 */
+	public boolean inShootingPosition = false; 
+	
+	/**
+	 * Signals that the robot is done shooting
+	 */
+	public boolean doneShooting = false; 
+	
+	/**
+	 * Signals that the robot is at its endpoint
+	 */
+	public boolean atEndpoint = false;
+	
+	/**
+	 * Is at defense point
+	 */
+	public boolean inDefenseTile = false;
+	
+	/**
+	 * Keep track of the last point
+	 */
+	private Point nextPoint;
+	
+	/**
+	 * Keep track of the last point
+	 */
+	private Waypoint lastPoint;
+	
+	private Point shootingLocation;
+	
+	public boolean changeShoot = false;
+	
+	public boolean avoidLock = false;
+	
+	/**
+	 * Main constructor 
+	 * @param r
+	 */
+	public AbstractBot(Robot r) {
+		this.robot = r;
+		this.shootingLocation = this.robot.shootingLocationForFinal();
+	}
+	
+	/**
+	 * Start the arbitration monitor
+	 */
+	public void start() {
+		arbitrator.start(); // Note that the highest priority is the highest index
+	}
+
+	/**
+	 * Get the arbitrator
+	 * @return arbitrator
+	 */
+	public Arbitrator getArbitrator() {
+		return arbitrator;
+	}
+
+	/**
+	 * Set the arbitrator
+	 * @param a
+	 */
+	public void setArbitrator(Arbitrator a) {
+		this.arbitrator = a;
+	}
+
+	/**
+	 * Check if the robot is lost
+	 * @return boolean true if lost, false otherwise
+	 */
+	public boolean isLost() {
+		return this.lost;
+	}
+	
+	/**
+	 * Tell the robot it is lost
+	 * @param l
+	 */
+	public void setLost(boolean l) {
+		this.lost = l;
+	}
+	
+	/**
+	 * Localize the robot 
+	 */
+	public void localize() {
+		this.robot.initialLocalization();
+	}
+
+	/**
+	 * Have the robot turn to a point.
+	 * Used to face the target.
+	 * @param x
+	 * @param y
+	 */
+	public void turnToPoint(double x, double y) {
+		this.robot.turnToPoint(x,y);
+	}
+
+	/**
+	 * Tell the robot to stop moving
+	 */
+	public void stopMoving() {
+		this.robot.stopMotors();
+	}
+	
+	/**
+	 * If the robot sees an obstacle it should note it, then reverse back to 
+	 * the point it came from.
+	 */
+	public void markObstacleAndReverse() {
+		
+		if (this.robot.inRange(this.shootingLocation, this.nextPoint, 10) && this.robot.isAttacker()) 
+			this.emergencyShoot();
+		
+		else {
+			///int disObs = robot.getLeftUltrasonicDistance();	
+			this.robot.stopGridCorrection();
+			//robot.moveImmediatelyBy(-8);
+		
+			Point curPoint = this.robot.currentPoint();
+		
+			this.robot.backUpToLastPoint(lastPoint);
+		
+			if (this.robot.isAtDestination(curPoint,false))
+				this.robot.moveImmediatelyBy(-5);
+		
+			this.robot.mapObstacleAhead();
+	
+			this.robot.turnImmediatelyBy(90);
+		
+			this.robot.startGridCorrection();
+			this.obstacleInPath = false;
+		}
+		
+		this.avoidLock = true;
+	}
+	
+	/**
+	 * Avoidance protocol if at the center of a tile
+	 */
+	public void centerAvoid() {
+		
+		if (this.robot.inRange(this.shootingLocation, this.nextPoint, 10) && this.robot.isAttacker()) 
+			this.emergencyShoot();
+		
+		else {
+			this.robot.stopUltrasonicTimer();
+			
+			this.robot.backUpToLastPoint(lastPoint);
+			
+			this.robot.mapObstacleAhead();
+			//this.snooze(500);
+			this.robot.turnImmediatelyBy(90);
+			//this.snooze(1000);
+			this.robot.startUltrasonicTimer();
+			this.obstacleInPath = false;	
+			this.snooze(500);
+		}
+		
+		this.avoidLock = true;
+	}
+	
+	private void emergencyShoot() {
+		this.robot.backUpToLastPoint(lastPoint);
+		
+		Point oldShoot = this.shootingLocation;
+		
+		if (oldShoot.x > 150)
+			this.shootingLocation = new Point(oldShoot.x - 60, oldShoot.y); 
+		else if (oldShoot.x < 150)
+			this.shootingLocation = new Point(oldShoot.x + 60, oldShoot.y);
+		
+		this.changeShoot = true;
+		//		/this.inShootingPosition = true; //???????
+		this.obstacleInPath = false;
+		snooze(1000);
+	
+	}
+	
+	
+	
+	/**
+	 * Ask the robot if it detects an obstacle
+	 * @return true if there is an obstacle in range
+	 */
+	public boolean obstacleDetected() {
+		// True return true, only once done avoiding will this become false
+		if (this.obstacleInPath)
+			return this.obstacleInPath;
+		// Otherwise	
+		this.obstacleInPath = this.robot.obstacleDetected();
+		return this.obstacleInPath;
+	}
+
+	/**
+	 * Have the robot travel the optimal path to a point
+	 * @param p
+	 */
+	public void travelOptimalPathToPoint(Point p) {
+		
+		//Sound.beepSequenceUp();
+		//snooze(3000);
+		
+		Path path = robot.getOptimalPathToPoint(p);
+		
+		robot.startUltrasonicTimer(); // STARTS TIMERS HERE CAN BE MOVED
+		robot.startGridCorrection();
+		
+		this.travelPath(path);
+	}
+	
+	/**
+	 * Travel a path 
+	 * @param a path p
+	 */
+	public void travelPath(Path p) {
+
+		//Sound.beepSequence();
+		//snooze(2000);
+		p.remove(0);
+		
+		for (Waypoint w: p) {
+			//lastPoint = w;
+			this.moveToPointOnGrid(w);
+		}	
+	}
+	
+	/**
+	 * Travel a path quickly 
+	 * @param a path p
+	 */
+	public void fastPath(Path p) {
+		double cos = Math.cos(Math.toRadians(robot.getTheta()));
+		
+		// There are three points in row, in the same direction of the robots theta, then fast travel. Otherwise travelPath
+		if (cos > .9) {
+			
+		}
+		
+		else if (cos < .2 || cos < -.2) {
+			
+		}
+		
+	}
+	
+	
+	/**
+	 * Move to a point
+	 * @param a point p
+	 */
+	public void moveToPointOnGrid(Point p) {
+		
+		this.nextPoint = p;
+		
+		robot.setNormalSpeed();
+		//robot.setFastSpeed();
+		if (!obstacleDetected()) {
+			
+			this.avoidLock = true;
+			this.robot.turnToPoint(p.getX(),p.getY());
+			this.avoidLock = false;
+			
+			lastPoint = new Waypoint(this.robot.getX(),this.robot.getY());
+			this.robot.moveForwardUntilStop();
+			//snooze(500); //Dangerous 
+			// Wait while not at destination and while the robot does not detect obstacle 
+			while (!atDestination(p,true) && !obstacleDetected())  
+				snooze(30);
+		}
+		this.robot.stopMotors();
+		
+		//snooze(10000); //REMOVE
+	}
+
+	/**
+	 * Check if the robot is at its destination 
+	 * @param p
+	 * @param line check for better travel
+	 * @return true if at destination, false otherwise
+	 */
+	public boolean atDestination(Point p, boolean lineCheck) {
+		//TODO: WHAT IS THIS???
+		//if (this.doneShooting && p.equals(robot.shootingLocationForFinal())) 
+		//	return true;
+		
+		return this.robot.isAtDestination(p,lineCheck);
+	}
+	
+	public boolean inTile(Point p) {
+		return this.robot.isInTile(p);
+	}
+	
+	public boolean inCenterOfTile() {
+		return this.robot.inCenterofTile();
+	}
+	
+	/**
+	 * Check if the robot is at its shooting position 
+	 * @return true if at shooting position 
+	 */
+	public boolean isAtShootingPosition() {
+		return this.atDestination(robot.shootingLocationForFinal(),true);
+	}
+	
+	/**
+	 * Check if the robot is at its endpoint
+	 * @return true if at shooting position 
+	 */
+	public boolean isAtEndpoint() {
+		return this.atDestination(robot.firstPoint(),true);
+	}
+
+	/**
+	 * Defense point 
+	 * @return  the defense point
+	 */
+	public Point defenseTilePoint() {
+		return this.robot.defenseTile();
+	}
+	
+	
+	/**
+	 * Have the robot defend.
+	 */
+	public void defend() {
+		this.robot.defend();
+		snooze(5000);
+	}
+	
+	
+	/**
+	 * Returns the shooting position
+	 * @return Point 
+	 */
+	public Point shootingPosition() {
+		return this.shootingLocation;
+	}
+	
+	/**
+	 * 
+	 * @return true if the robot is in the shooting tile
+	 */
+	public boolean isInShootingTile() {
+		return this.robot.isInTile(this.shootingLocation);
+	}
+	
+	/**
+	 * Returns the endpoint
+	 * @return Point 
+	 */
+	public Point endpoint() {
+		return this.robot.firstPoint();
+	}
+	
+	
+	/**
+	 * Returns the ball dispenser point
+	 * @return
+	 */
+	public Point ballDispenser() {
+		return this.robot.ballDispenserTile();
+	}
+	
+	/**
+	 * Face the target located at the intersection point (5,10) for the final.
+	 * For the beta, the target is variable 
+	 */
+	public void faceTarget() {
+		//robot.turnToPoint(Constants.TARGET_X,Constants.TARGET_Y); // For final 
+		this.robot.turnToTarget();
+	}
+	
+	/**
+	 * Tell the robot to shoot.
+	 * The robot is assumed to be facing the target from the shooting position.
+	 */
+	public void shoot() {
+		this.robot.shoot();
+		this.doneShooting = true;
+	}
+
+	/**
+	 * Tell the robot to retrieve the ball.
+	 * The robot is assumed to be at the ball dispenser location. 
+	 */
+	public void retrieveBalls() {
+		this.robot.stopGridCorrection();
+		this.robot.retrieveBall(Constants.NUMBER_OF_BALLS);
+		this.hasBall = true;
+		this.robot.startGridCorrection();
+		this.snooze(500);
+	}
+	
+	public boolean isFacingWall() {
+		return this.robot.inWallRange();
+	}
+	
+	/**
+	 * Shutdown protocol 
+	 */
+	public void shutdown() {
+		//this.robot.moveImmediatelyBy(-3);
+		this.robot.turnImmediatelyBy(90);
+		
+		if (!this.robot.isAttacker() && this.robot.isInTile(this.robot.ballDispenserTile())) {
+			this.robot.setSpeed(Constants.FAST_SPEED);
+			this.robot.rotateImmediate(100000);
+		}
+			
+		
+	}
+	
+	
+	/**
+	 * Sleep the thread for some milliseconds
+	 * @param milliseconds
+	 */
+	private void snooze(int milliseconds) {
+		try { Thread.sleep(milliseconds); } catch (InterruptedException e) { e.printStackTrace(); }
+	}
+
+
+
+
+}

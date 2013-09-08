@@ -1,0 +1,10 @@
+package localization;
+
+public class LineLocalize implements Localization {
+
+	@Override
+	public void localize() {
+		
+	}
+
+}

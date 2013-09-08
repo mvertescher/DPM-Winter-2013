@@ -1,7 +1,0 @@
-package localization;
-
-public class DoubleLineLocalization implements Localization {
-
-	
-	
-}

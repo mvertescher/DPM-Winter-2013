@@ -1,0 +1,70 @@
+package odometry.correction;
+
+import robot.Constants;
+import lejos.nxt.LightSensor;
+
+public class LightSensorControl {
+
+	private LightSensor lsl, lsr;
+	private int[] leftSample, rightSample;
+	private int leftIndex, rightIndex; 
+	private final int sampleSize = 5; 
+	private int leftCur, leftPre;
+	private int rightCur, rightPre;
+	
+	
+	public LightSensorControl() {
+		this.lsl = new LightSensor(Constants.LIGHT_LEFT,true);
+		this.lsr = new LightSensor(Constants.LIGHT_RIGHT,true);
+		
+		this.leftCur =  lsl.getNormalizedLightValue();
+		this.leftPre = this.leftCur;
+		this.rightCur = lsr.getNormalizedLightValue();
+		this.rightPre = this.rightCur;
+		
+		
+		this.leftSample = new int[sampleSize];
+		this.rightSample = new int[sampleSize];
+		
+		this.initSample(lsl, leftSample);
+		this.initSample(lsr, rightSample);
+		
+		this.leftIndex = 0;
+		this.rightIndex = 0;
+	}
+	
+	public boolean leftLineHit() { 
+		this.leftPre = this.leftCur;
+		int newVal = lsl.getNormalizedLightValue();
+		this.leftCur = newVal/(sampleSize-leftSample[leftIndex]);''
+						
+		//this.leftCur = lsl.getNormalizedLightValue();
+		
+		//return (((this.leftCur - this.leftPre) / this.leftPre) >  Constants.LIGHT_SENSOR_ERROR);
+		
+		
+		
+		
+	}
+	
+
+
+	public boolean rightLineHit() {
+		//this.rightPre = this.rightCur;
+		//this.rightCur = lsr.getNormalizedLightValue();
+		
+		//return (((this.rightCur - this.rightPre) /  this.rightPre) >  Constants.LIGHT_SENSOR_ERROR);
+		
+		
+		
+		
+	}
+	
+	
+	//FELIZ
+	private void initSample(LightSensor ls, int[] sample) {
+		for (int i = 0; i < sampleSize; i++) {
+			sample[i] = ls.getNormalizedLightValue();
+	}
+	
+}

@@ -1,0 +1,15 @@
+[
+  {
+    "symbolicName": "classes",
+    "version": {
+      "major": -1,
+      "minor": -1,
+      "micro": -1,
+      "qualifier": ""
+    },
+    "jarFileFingerprint": "3ff1a698b9f7660a9429d743e9d271de28dfe0b6",
+    "jarFileModificationDate": "2012-05-29T01:13:32-04:00",
+    "location": "C:\\Program Files (x86)\\leJOS NXJ\\lib\\nxt\\classes.jar",
+    "javaRuntime": false
+  }
+]

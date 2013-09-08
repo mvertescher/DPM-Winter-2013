@@ -1,0 +1,27 @@
+#Thu Apr 11 18:09:00 EDT 2013
+sourceHoverBackgroundColor=255,255,225
+content_assist_proposals_foreground=0,0,0
+spelling_locale_initialized=true
+content_assist_disabled_computers=org.eclipse.recommenders.completion.rcp.templates.category\u0000org.eclipse.jdt.ui.javaAllProposalCategory\u0000org.eclipse.jdt.ui.javaNoTypeProposalCategory\u0000org.eclipse.jdt.ui.textProposalCategory\u0000org.eclipse.recommenders.subwords.rcp.category\u0000org.eclipse.recommenders.completion.rcp.chain.category\u0000org.eclipse.jdt.ui.javaTypeProposalCategory\u0000
+markOccurrences=false
+command=C\:\\Program Files (x86)\\Java\\jdk1.6.0_27\\bin\\javadoc.exe
+org.eclipse.jdt.ui.text.templates_migrated=true
+useAnnotationsPrefPage=true
+eclipse.preferences.version=1
+org.eclipse.jface.textfont=1|Consolas|10.0|0|WINDOWS|1|0|0|0|0|0|0|0|0|1|0|0|0|0|Consolas;
+tabWidthPropagated=true
+hoverModifiers=org.eclipse.jdt.ui.BestMatchHover;\!0;org.eclipse.jdt.internal.debug.ui.JavaDebugHover;\!0;org.eclipse.jdt.ui.ProblemHover;\!0;org.eclipse.jdt.ui.NLSStringHover;Ctrl+Alt;org.eclipse.jdt.ui.JavadocHover;0;org.eclipse.jdt.ui.JavaSourceHover;Shift;org.eclipse.jdt.ui.AnnotationHover;\!0;
+LexicalSortingAction.isChecked=true
+org.eclipse.jdt.ui.editor.tab.width=
+fontPropagated=true
+org.eclipse.jdt.ui.text.custom_code_templates=<?xml version\="1.0" encoding\="UTF-8" standalone\="no"?><templates/>
+org.eclipse.jdt.ui.javadoclocations.migrated=true
+proposalOrderMigrated=true
+hoverModifierMasks=org.eclipse.jdt.ui.BestMatchHover;0;org.eclipse.jdt.internal.debug.ui.JavaDebugHover;0;org.eclipse.jdt.ui.ProblemHover;0;org.eclipse.jdt.ui.NLSStringHover;327680;org.eclipse.jdt.ui.JavadocHover;0;org.eclipse.jdt.ui.JavaSourceHover;131072;org.eclipse.jdt.ui.AnnotationHover;0;
+content_assist_proposals_background=255,255,255
+org.eclipse.jdt.ui.formatterprofiles.version=12
+content_assist_number_of_computers=13
+useQuickDiffPrefPage=true
+org.eclipse.jdt.ui.text.custom_templates=<?xml version\="1.0" encoding\="UTF-8" standalone\="no"?><templates/>
+content_assist_lru_history=<?xml version\="1.0" encoding\="UTF-8" standalone\="no"?><history maxLHS\="100" maxRHS\="10"><lhs name\="lejos.nxt.BasicSensorPort"><rhs name\="lejos.nxt.SensorPort"/></lhs><lhs name\="lejos.nxt.SensorConstants"><rhs name\="lejos.nxt.SensorPort"/></lhs><lhs name\="lejos.nxt.I2CPort"><rhs name\="lejos.nxt.SensorPort"/></lhs><lhs name\="java.awt.geom.Point2D$Float"><rhs name\="lejos.geom.Point"/></lhs><lhs name\="java.awt.geom.Point2D"><rhs name\="lejos.geom.Point"/></lhs><lhs name\="java.lang.Cloneable"><rhs name\="lejos.geom.Point"/></lhs><lhs name\="lejos.geom.Point"><rhs name\="lejos.geom.Point"/></lhs></history>
+org.eclipse.jdt.ui.text.code_templates_migrated=true

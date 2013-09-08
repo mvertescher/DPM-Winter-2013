@@ -1,0 +1,933 @@
+package robot;
+
+import client.BluetoothConnection;
+import client.ServerParser;
+import client.Transmission;
+import navigation.MotorController;
+import navigation.Navigator;
+import navigation.Trigonometry;
+import odometry.Odometer;
+import odometry.correction.OdometerCorrection;
+import pathfinding.Pathfinder;
+import remote.RemoteController;
+import sensors.SensorController;
+import subsumption.Attacker;
+import subsumption.BetaBot;
+import subsumption.Defender;
+import lejos.geom.Point;
+import lejos.nxt.LCD;
+import lejos.nxt.NXTRegulatedMotor;
+import lejos.nxt.Sound;
+import lejos.robotics.navigation.Waypoint;
+import lejos.robotics.pathfinding.Node;
+import lejos.robotics.pathfinding.Path;
+import localization.LocalizationController;
+
+/**
+ * Robot.java
+ * 
+ * Models an autonomous robot.
+ * This class is the center of the architecture. It defines all of the robots abilities.  
+ * 
+ * @author Matthew Vertescher
+ *
+ */
+public class Robot {
+
+	public NXTRegulatedMotor leftMotor, rightMotor;
+	private NXTRegulatedMotor leftFlywheelMotor, rightFlywheelMotor;
+	
+	/**
+	 * Mechanical Robot Constants
+	 */
+	public final double LEFT_RADIUS = Constants.LEFT_RADIUS, RIGHT_RADIUS = Constants.RIGHT_RADIUS, WIDTH = Constants.WIDTH;
+	
+	/**
+	 * The robots Odometer 
+	 */
+	public Odometer odometer;
+	
+	/**
+	 * A simple grid correction
+	 */
+	private OdometerCorrection gridCorrection;
+	
+	/**
+	 * LCD Display Timer Listener
+	 */
+	public LCDUpdater display; 
+	
+	/**
+	 * The robots navigation system
+	 */
+	public Navigator navigator;
+	
+	/**
+	 * The robots sensor system
+	 */
+	private SensorController sc;
+	
+	/**
+	 * The robots pathfinder
+	 */
+	private Pathfinder pathfinder;
+	
+	/**
+	 * The robots localization controller
+	 */
+	private LocalizationController lc;
+	
+	/**
+	 * The robots access to data from the server
+	 */
+	private ServerParser sp;
+	
+	/**
+	 * The robots accsess to the remote brick
+	 */
+	private RemoteController rc;
+	
+	//TODO: GET RID OF 
+	/**
+	 * Ball dispenser constants
+	 */
+	private double bx, by, omega; 
+	//TODO: GET RID OF 
+	/**
+	 * Ball dispenser point
+	 */
+	private Point bd;
+	
+	
+	
+	
+	//private boolean rotating; 
+	
+	
+	/**
+	 * Basic Constructor
+	 */
+	public Robot() {
+		leftMotor = Constants.LEFT_MOTOR;
+		rightMotor = Constants.RIGHT_MOTOR;
+		
+		odometer = new Odometer(Constants.ODOMETRY_PERIOD, leftMotor, rightMotor, LEFT_RADIUS, WIDTH);
+		gridCorrection = new OdometerCorrection(Constants.CORRECTION_PERIOD,this,odometer);
+		display = new LCDUpdater(50, odometer);
+		navigator = new Navigator(this, leftMotor, rightMotor, LEFT_RADIUS, RIGHT_RADIUS, WIDTH);
+		sc = new SensorController();
+		pathfinder = new Pathfinder(this);
+		lc = new LocalizationController(this); 
+		
+		sp = new ServerParser();
+		
+		
+		//this.rotating = false;
+	}
+
+	/**
+	 * Start odometer
+	 */
+	public void startOdometer() {
+		odometer.startTimer();
+	}
+	
+	
+	/**
+	 * Start display
+	 */
+	public void startDisplay() {
+		display.startTimer();
+	}
+	
+	/**
+	 * Main method for robot's execution thread
+	 */
+	public void begin() {
+		
+		//this.initialLocalization();
+		//snooze(5000);
+		//navigator.travelForwardsToPoint(this.firstPoint());
+		
+		//snooze(10000);
+		
+		//this.startUltrasonicTimer();
+		//snooze(100000);
+		//this.turnImmediatelyBy(-1);
+		//snooze(5000);
+		//this.turnImmediatelyBy(2);
+
+		sp.getTransmission();
+		
+		snooze(400);
+		
+		// Is attacker?
+		if (sp.isAttacker()) {
+			pathfinder.removeAttackerNodes(sp.getD1(),sp.getW1(),sp.getW2());
+			Attacker bot = new Attacker(this); 
+			bot.start();
+		}
+		// Is defender?	
+		else if(sp.isDefender()) {
+			pathfinder.removeDefenderNodes(sp.getD1(),sp.getW1(),sp.getW2());
+			Defender bot = new Defender(this); 
+			bot.start();
+		}
+		
+		// Signify end of control
+		snooze(2000);
+		Sound.beepSequenceUp();
+		snooze(2000);
+		Sound.beepSequenceUp();
+		snooze(2000);
+		Sound.beepSequenceUp();
+		snooze(2000);
+		
+		snooze(1000000);
+		
+		System.exit(0);
+		
+	}
+
+	/**
+	 * Start odometry correction
+	 */
+	public void startGridCorrection() {
+		gridCorrection.startTimer();
+	}
+	
+	/**
+	 * Start odometry correction
+	 */
+	public void stopGridCorrection() {
+		gridCorrection.stopTimer();
+	}
+	
+	
+	// MOVED TO ABSTRACT BOT
+	private void moveToPoint(Point p) {
+		navigator.turnToPoint(p);
+		navigator.moveForwardUntilStop();
+		while (!navigator.atDestination(p) && !this.obstacleDetected()) 
+			snooze(30);
+		navigator.stopMotors();
+		
+	}
+	
+	/**
+	 * Returns a point representing the ball dispenser location 
+	 * @return point 
+	 */
+	public Point ballDispenserTile() {
+		//TODO: Move this to serverparser;
+		Point bdp = sp.ballDispenserPoint();
+		
+		if (bdp.y == -30)
+			new Point(bdp.x - 15,15);
+		else if (bdp.x == -30)
+			return new Point(15,bdp.y - 15);
+		else if (bdp.x == 330)
+			return new Point(285,bdp.y - 15);
+		else if (bdp.y == 330)	
+			new Point(bdp.x - 15,285);
+		
+		return new Point(bdp.x - 15,15);
+	}
+	
+	
+	/**
+	 * Returns a point representing the shooting location for the Beta
+	 * @return point 
+	 * @deprecated
+	 */
+	public Point shootingLocationForBeta() {
+		Point targetPoint = sp.targetPoint();
+		
+		// Determine the shooting location here
+		if (targetPoint.y >= 150)
+			return new Point(targetPoint.x-15,targetPoint.y-165);
+		else 	
+			return new Point(targetPoint.x-15,targetPoint.y+165);
+	}
+	
+	/**
+	 * Returns a point representing the shooting location for the Final
+	 * @return point to shoot from
+	 */
+	public Point shootingLocationForFinal() {
+		double bdX = this.sp.ballDispenserX();
+		int sly = sp.forwardLineY() - 15;
+		
+		if (bdX > 150) {
+			return new Point(255,sly);
+		}
+		
+		return new Point(45,sly);
+		
+	}
+	
+	/**
+	 * Returns a point representing the first travel point after localization.
+	 * Also the last point.
+	 * @return point 
+	 */
+	public Point firstPoint() {
+		//return new Point(15,15); // Hardcoded for square 1
+		return sp.firstPoint();
+	}
+	
+	/**
+	 * Returns a point representing the end point (BETA)
+	 * @return point 
+	 * @deprecated
+	 */
+	public Point betaEndPoint() {
+		return new Point(15,15); 
+	}
+	
+	
+	/**
+	 * The defense tile point. This is a center of of tile closest to the initial corner.  
+	 * @return Point p 
+	 */
+	public Point defenseTile() {
+		int wy = sp.defenseY();
+		int defY = 285 - wy; 
+		
+		// Upper left
+		if (sp.startingCorner() == 4 || sp.startingCorner() == 1) 
+			return new Point(135,defY); 
+			
+		// Upper right	
+		else if (sp.startingCorner() == 3 || sp.startingCorner() == 2) 
+			return new Point(165,defY); 
+		
+		return new Point(135,defY);
+	}
+	
+	
+	/**
+	 * The final defense point. This will always have x coordinate 150 
+	 * with a variable y coordinate. 
+	 * @return Point p 
+	 */
+	public Point defensePosition() {
+		return new Point(150,(285 - sp.defenseY())); 
+	}
+	
+	/**
+	 * Have the robot move directly to the defense point
+	 */
+	public void defend() {
+		navigator.travelImmediate(this.defensePosition());
+		navigator.turnToPoint(new Point(150,0));
+	}
+	
+	
+	
+	/**
+	 * Face the goal to shoot 
+	 */
+	public void turnToTarget() {
+		Point targetPoint = sp.targetPoint();
+		this.setSpeed(50);
+		this.turnToPoint(targetPoint.x,targetPoint.y);
+		this.setNormalSpeed();
+	}
+	
+	
+	/**
+	 * Returns an optimal path to a point
+	 * @param p
+	 * @return a path that is optimal
+	 */
+	public Path getOptimalPathToPoint(Point p) {
+		return pathfinder.getOptimalPathToPoint(p);
+	}
+	
+
+	/**
+	 * Starts the ultrasonic timers
+	 */
+	public void startUltrasonicTimer() {
+		sc.startUltrasonicTimer();
+	}
+	
+	/**
+	 * Stops the ultrasonic timers
+	 */
+	public void stopUltrasonicTimer() {
+		sc.stopUltrasonicTimer();
+	}
+	
+	/**
+	 * Returns the distance from the front ultrasonic timer 
+	 * @return int distance
+	 */
+	public int getLeftUltrasonicDistance() {
+		return sc.getLeftUltrasonicTimerDistance();
+	}
+	
+	/**
+	 * Returns the distance from the front ultrasonic timer 
+	 * @return int distance
+	 */
+	public int getRightUltrasonicDistance() {
+		return sc.getRightUltrasonicTimerDistance();
+	}
+
+	/**
+	 * Start light timers
+	 */
+	public void startLightTimers() {
+		this.sc.startLeftLightTimer();
+		this.sc.startRightLightTimer();
+	}
+	
+	/**
+	 * Stop light timers
+	 */
+	public void stopLightTimers() {
+		this.sc.stopLeftLightTimer();
+		this.sc.stopRightLightTimer();
+	}
+	
+	/**
+	 * Check if the left light sensor hit a line
+	 * @return true if line hit, false otherwise
+	 */
+	public boolean lineHitLeft() { // synchronized?
+		return this.sc.lineHitLeft();
+	}
+	
+	/**
+	 * Check if the right light sensor hit a line
+	 * @return true if line hit, false otherwise
+	 */
+	public boolean lineHitRight() {
+		return this.sc.lineHitRight();
+	}
+	
+	
+	/**
+	 * Wrapper method to get the robots current x coordinate from the odometer
+	 * @return double x
+	 */
+	public double getX() {
+		return odometer.getX();
+	}
+	
+	/**
+	 * Sets the x coordinate of the robot
+	 * @param x
+	 */
+	public void setX(double x) {
+		this.odometer.setX(x);
+	}
+	
+	/**
+	 * Wrapper method to get the robots current y coordinate from the odometer
+	 * @return double y
+	 */
+	public double getY() {
+		return odometer.getY();
+	}
+	
+	/**
+	 * Sets the y coordinate of the robot
+	 * @param y
+	 */
+	public void setY(double y) {
+		this.odometer.setY(y);
+	}
+	
+	/**
+	 * Wrapper method to get the robots current theta coordinate from the odometer
+	 * @return double theta
+	 */
+	public double getTheta() {
+		return odometer.getTheta();
+	}
+	
+	/**
+	 * Sets the theta of the robot
+	 * @param t
+	 */
+	public void setTheta(double t) {
+		this.odometer.setTheta(t);
+	}
+	
+	/**
+	 * Returns the robots current position in point form
+	 * @return a point
+	 */
+	public Point currentPoint() {
+		return new Point((float)this.getX(),(float)this.getY());
+	}
+	
+	/**
+	 * Checks if the bot is in a tile
+	 * @param Point p of tile
+	 * @return true if in tile
+	 */
+	public boolean isInTile(Point p) {
+		if (pathfinder.getCurrentNode().equals(pathfinder.getNode(p)))
+			return true;
+		return false;
+	}
+	
+	/**
+	 * Determines if the robot is in the center of a tile
+	 * @return
+	 */
+	public boolean inCenterofTile() {
+		return this.isAtDestination(pathfinder.getCurrentNodePoint(), false);
+	}
+	
+	/**
+	 * Have the robot localize initially 
+	 */
+	public void initialLocalization() {
+		lc.doubleLineLocalization(sp.startingCorner());
+		//this.turnToHeading(0);
+	}
+	
+	/**
+	 * Have the robot shoot 
+	 */
+	public void shoot() { 
+		//RemoteController rc = new RemoteController();
+		//snooze(3000);
+		this.stopUltrasonicTimer();
+		
+		rc = new RemoteController();
+		
+		
+		/*
+		int sX = (int) (Math.floor(this.getX() / 30) + 1);
+		if (sX  > 5)
+			sX = sX - 5;
+		else if (sX  < 6)
+			sX =  sX - 6;
+		
+		int sY = (int) (10 - (Math.floor(this.getY() / 30) + 1));
+		*/
+		
+		// Localize 
+		Point curPoint = this.pathfinder.getCurrentNodePoint();
+				
+		this.turnToHeading(0);
+		lc.lineLocalize();
+		this.setTheta(0);
+		this.setY(curPoint.getY() + 15 - Constants.LIGHT_SENSOR_Y);
+				
+		this.moveImmediatelyBy(-7);
+				
+		this.turnToHeading(90);
+		lc.lineLocalize();
+		this.setTheta(90);
+		this.setX(curPoint.getX() + 15 - Constants.LIGHT_SENSOR_Y);
+		
+		//this.moveForwardToPoint(shootingLocationForFinal());
+		this.turnToTarget();
+		
+		// Calibration
+		snooze(500);
+		this.turnImmediatelyBy(2);
+		snooze(500);
+		
+		curPoint = this.pathfinder.getCurrentNodePoint();
+		
+		//double disToTarget = Trigonometry.getPointToPointDistance(this.getX(),this.getY(),curPoint.getX(), curPoint.getY());
+		double disToTarget = Trigonometry.getPointToPointDistance(this.getX(),this.getY(),150,300);
+		
+		int tilesToShoot = (int) ((disToTarget / 30)+0.5); 
+		
+		
+		rc.shoot(4,tilesToShoot);
+		snooze(40000);
+		
+		this.startUltrasonicTimer();
+		
+		// Make sure it is at the start
+		this.navigator.travelForwardsToPoint(curPoint);
+		snooze(500);
+		this.navigator.travelForwardsToPoint(curPoint);
+	}
+	
+	/**
+	 * Retrieve ball.
+	 * This is accomplished by moving onto the gridline, then backing into the ball dispenser.
+	 * The robot returns to its original point when done.
+	 * @param n number of balls to retrieve  
+	 */
+	public void retrieveBall(int n) {
+		Point bdp = sp.ballDispenserPoint();
+		Point startingPoint = this.currentPoint();
+		
+		
+		
+		int deltaTurn = 3;
+		int backup1 = 0; //Init backup
+		double backup2 = 2.5; //Small backup
+		
+		this.setSpeed(Constants.SLOW_SPEED);
+		
+		// Localize 
+		Point curPoint = this.pathfinder.getCurrentNodePoint();
+		
+		this.turnToHeading(0);
+		lc.lineLocalize();
+		this.setTheta(0);
+		this.setY(curPoint.getY() + 15 - Constants.LIGHT_SENSOR_Y);
+		
+		this.moveImmediatelyBy(-7);
+		
+		this.turnToHeading(90);
+		lc.lineLocalize();
+		this.setTheta(90);
+		this.setX(curPoint.getX() + 15 - Constants.LIGHT_SENSOR_Y);
+		
+		
+		
+		// West wall
+		if (bdp.getX() == -30) {
+			this.navigator.travelImmediate(new Point(0,bdp.y));
+			this.navigator.turnToHeading(90 + deltaTurn); //FELEZ DO NOT FUCK WITH THIS SHIT., feliz! feliz, please...
+		}	
+		
+		// East wall
+		else if (bdp.getX() == 330) {
+			this.navigator.travelImmediate(new Point(300,bdp.y));
+			this.navigator.turnToHeading(270 + deltaTurn);
+		}
+		
+		// South wall
+		else if (bdp.getY() == -30) {
+			this.navigator.travelImmediate(new Point(bdp.x,0));
+			this.navigator.turnToHeading(0 + deltaTurn);
+		}
+		
+		// North wall, this case should not happen
+		else if (bdp.getY() == 330) {
+			this.navigator.travelImmediate(new Point(bdp.x,300));
+			this.navigator.turnToHeading(180 + deltaTurn);
+		}
+		
+		this.navigator.moveImmediatelyBy(-backup1);
+		
+		snooze(1000);
+		
+		for (int i = 0; i < n; i++) {
+			this.navigator.moveImmediatelyBy(-backup2);
+			snooze(5000);
+			this.navigator.moveImmediatelyBy(backup2);
+		}
+		
+		snooze(1000);
+		
+		this.navigator.moveImmediatelyBy(backup1);
+		
+		snooze(1000);
+		
+		// Make sure it is at the start
+		this.navigator.travelForwardsToPoint(startingPoint);
+		snooze(500);
+		this.navigator.travelForwardsToPoint(startingPoint);
+	}
+	
+	
+	/**
+	 * Wrapper method for the robot to turn to a point.
+	 * Correction safe.
+	 * @param x
+	 * @param y
+	 */
+	public void turnToPoint(double x, double y) {
+		//this.rotating = true;
+		gridCorrection.stopTimer();
+		navigator.turnToPoint(new Point((float)x,(float)y));
+		gridCorrection.startTimer();
+		//this.rotating = false;
+	}
+	
+	/**
+	 * Wrapper method for the robot to turn to a heading.
+	 * Correction safe. 
+	 * @param theta
+	 */
+	public void turnToHeading(double theta) {
+		gridCorrection.stopTimer();
+		navigator.turnToHeading(theta);
+		gridCorrection.startTimer();
+	}
+	
+	//public boolean isRotating() {
+	//	return this.rotating;
+	//}
+	
+	/**
+	 * Wrapper method to move forward to a point
+	 * @param p
+	 */
+	public void moveForwardToPoint(Point p) {
+		navigator.travelForwardsToPoint(p);
+	}
+	
+	/**
+	 * Back up to last point 
+	 */
+	public void backUpToLastPoint(Waypoint lp) {
+		gridCorrection.stopTimer();
+		//Point pn = pathfinder.getCurrentNodePoint();
+		navigator.travelBackwardsToPoint(new Point((float)lp.getX(),(float)lp.getY()));
+		//navigator.moveImmediatelyBy(-15);
+		
+		gridCorrection.startTimer();
+	}
+	
+	/**
+	 * Have the robot travel a path
+	 * @param p
+	 */
+	public void travelPath(Path p) {
+		//for (Waypoint w: p) 
+			//navigator.travelForwardsToPoint(w);
+		navigator.travelPathImmediately(p);
+	}
+	
+	
+	/**
+	 * Rotate Immediate, polar theta
+	 * @param t
+	 */
+	public void rotateImmediate(double t) {
+		navigator.rotateImmediate(t);
+	}
+	
+	/**
+	 * Rotate the robot left until stop
+	 */
+	public void rotateLeftTilStop() {
+		navigator.rotateLeftTilStop();
+	}
+	
+	/**
+	 * Rotate the robot right until stop
+	 */
+	public void rotateRightTilStop() {
+		navigator.rotateRightTilStop();
+	}
+	
+	
+	/**
+	 * Wrapper method to have the robot move forward until a stopMotors() is called
+	 */
+	public void moveForwardUntilStop() {
+		navigator.moveForwardUntilStop();
+	}
+	
+	/**
+	 * Pivot left
+	 */
+	public void pivotLeft() {
+		navigator.pivotLeft();
+	}
+	
+	/**
+	 * Pivot right 
+	 */
+	public void pivotRight() {
+		navigator.pivotRight();
+	}
+	
+	/**
+	 * Stops the robot immediately 
+	 */
+	public void stopMotors() {
+		navigator.stopMotors();
+	}
+	
+	/**
+	 * Set the speed of the robot
+	 * @param s 
+	 */
+	public void setSpeed(int s) {
+		navigator.setSpeed(s);	
+	}
+	
+	/**
+	 * Set the normal speed of the robot
+	 * @param s 
+	 */
+	public void setNormalSpeed() {
+		navigator.setSpeed(Constants.NORMAL_SPEED);	
+	}
+	
+	/**
+	 * Set the fast speed of the robot
+	 * @param s 
+	 */
+	public void setFastSpeed() {
+		navigator.setSpeed(Constants.FAST_SPEED);	
+	}
+	
+	/**
+	 * Check if the robot is at its destination
+	 * @param p
+	 * @return true if at destination
+	 */
+	public boolean isAtDestination(Point p, boolean lineCheck) {
+		
+		// Line check
+		//boolean lineCheck = false;
+		if (lineCheck) {
+		//if (false) {
+			if (this.getDirection2() == CompassDirection.NORTH && this.getY() > p.y)
+				return true;
+			else if (this.getDirection2() == CompassDirection.SOUTH && this.getY() < p.y)
+				return true;
+			else if (this.getDirection2() == CompassDirection.WEST && this.getX() < p.x)
+				return true;
+			else if (this.getDirection2() == CompassDirection.EAST && this.getX() > p.x)
+				return true;
+			//Sound.beepSequence();
+		}
+		
+		return (navigator.atDestination(p));
+	}
+	
+	/**
+	 * Boolean to turn off avoidance if facing a wall. 
+	 * @return true if in range of the wall
+	 */
+	public boolean inWallRange() {
+
+		if (this.getX() < 10 && this.getDirection().equals(CompassDirection.WEST)) 
+			return true;
+		
+		if (this.getY() < 10 && this.getDirection().equals(CompassDirection.SOUTH)) 
+			return true;
+		
+		if (this.getX() > 290 && this.getDirection().equals(CompassDirection.EAST)) 
+			return true;
+		
+		if (this.getY() > 290 && this.getDirection().equals(CompassDirection.NORTH)) 
+			return true;
+		
+		return false;
+	}
+	
+	/**
+	 * Moves the robot forward by a distance
+	 * @param d
+	 */
+	public void moveImmediatelyBy(double d) {
+		navigator.moveImmediatelyBy(d);
+	}
+	
+	/**
+	 * Wrapper method for the robot to turn immediately by some angle.
+	 * @param theta
+	 */
+	public void turnImmediatelyBy(double theta) {
+		navigator.rotateImmediate(theta);
+	}
+
+	
+	/**
+	 * Backs the robot to a point, always moves a min of 5 cm
+	 * @param x
+	 * @param y
+	 */
+	public void backupToPoint(double x, double y) {
+		Point a = this.currentPoint();
+		navigator.travelBackwardsToPoint(new Point((float) x,(float) y));
+		Point b = this.currentPoint();
+		double ptpd = Trigonometry.getPointToPointDistance(a.x,a.y, b.x,b.y);
+		if (ptpd < 4)
+			this.moveImmediatelyBy(-5);
+	}
+	
+	/**
+	 * Check if the robot detects an obstacle 
+	 * @return true if an obstacle is in range
+	 */
+	public boolean obstacleDetected() {
+		return (this.getLeftUltrasonicDistance() < Constants.OBSTACLE_DETECTION_RANGE || this.getRightUltrasonicDistance() < Constants.OBSTACLE_DETECTION_RANGE);
+	}
+	
+	/**
+	 * Map the obstacle directly ahead of the robot
+	 */
+	public void mapObstacleAhead() {
+		this.mapAdjecentObstacle(this.getDirection());
+	}
+	
+	/**
+	 * Maps an adjacent obstacle  
+	 */
+	public void mapAdjecentObstacle(CompassDirection cd) {
+		pathfinder.removeAdjacentNode(cd);
+		//pathfinder.removeNextAdjacentNode(cd); // test
+	}
+	
+	/**
+	 * Returns a compass approximation of the robot's heading
+	 * @return compass direction
+	 */
+	public CompassDirection getDirection() {
+		if (Math.cos(Math.toRadians(this.getTheta())) > .707)
+			return CompassDirection.NORTH;
+		else if (Math.cos(Math.toRadians(this.getTheta())) < -.707)
+			return CompassDirection.SOUTH;
+		else if (Math.sin(Math.toRadians(this.getTheta())) > .707)
+			return CompassDirection.EAST;
+		else if (Math.sin(Math.toRadians(this.getTheta())) < -.707)
+			return CompassDirection.WEST;
+		else 
+			
+		//Sound.buzz();
+		return null;	
+	}
+	
+	/**
+	 * Returns a closer compass approximation of the robot's heading
+	 * @return compass direction
+	 */
+	public CompassDirection getDirection2() {
+		if (Math.cos(Math.toRadians(this.getTheta())) > .9)
+			return CompassDirection.NORTH;
+		else if (Math.cos(Math.toRadians(this.getTheta())) < -.9)
+			return CompassDirection.SOUTH;
+		else if (Math.sin(Math.toRadians(this.getTheta())) > .9)
+			return CompassDirection.EAST;
+		else if (Math.sin(Math.toRadians(this.getTheta())) < -.9)
+			return CompassDirection.WEST;
+		else 
+			return CompassDirection.NONE;			
+	}
+	
+	
+	
+	/**
+	 * Sleep the thread for some milliseconds
+	 * @param milliseconds
+	 */
+	private void snooze(int milliseconds) {
+		try { Thread.sleep(milliseconds); } catch (InterruptedException e) { e.printStackTrace(); }
+	}
+
+	public boolean isAttacker() {
+		return sp.isAttacker();
+	}
+
+
+	public boolean inRange(Point a, Point b, int radius) {
+		if (Math.abs(a.x - b.x) < radius && Math.abs(a.y - b.y) < radius)
+			return true;
+		return false;
+	}
+	
+
+}

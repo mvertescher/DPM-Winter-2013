@@ -1,0 +1,393 @@
+package odometry.correction;
+
+import odometry.Odometer;
+import lejos.geom.Point;
+import lejos.nxt.LCD;
+import lejos.nxt.LightSensor;
+import lejos.nxt.Sound;
+import lejos.util.Timer;
+import lejos.util.TimerListener;
+import robot.Constants;
+import robot.Robot;
+
+/**
+ * 
+ * Odometery correction. 
+ * This is a grid correction using two light sensors.
+ * 
+ * @author Matthew Vertescher 
+ *
+ */
+public class OdometerCorrection implements TimerListener {
+	
+	private Timer correctionTimer;
+	private Robot robot;
+	private Odometer odometer;
+	private boolean active;
+	
+	private double[] xCord; 
+	private double[] yCord; 
+	
+	private int index = 0, doubleLineHits = 0;
+	private boolean leftHit, rightHit, lastLeft, lastRight;
+	private double currentX, currentY, currentTheta;
+	
+	private Windrose previousWindrose, currentWindrose;
+	
+	private LightSensor lsl, lsr;
+	private int 
+	
+	public OdometerCorrection(int period, Robot r, Odometer odo) {
+		this.correctionTimer = new Timer(period, this);
+		this.robot = r;
+		this.odometer = odo;
+		this.active = false;
+		
+		this.xCord = new double[4];
+		this.yCord = new double[4];
+		
+		this.lastLeft = false;
+		this.lastRight = false;
+		
+		this.lsl = new LightSensor(Constants.LIGHT_LEFT,true);
+		this.lsr = new LightSensor(Constants.LIGHT_RIGHT,true);
+		
+	}
+	
+	
+	@Override
+	public void timedOut() {
+			
+		// Get inputs
+		currentX = odometer.getX();
+		currentY = odometer.getY();
+
+		currentWindrose = this.getWindrose();
+		
+		// Get hit from thread
+		leftHit = robot.lineHitLeft();
+		rightHit = robot.lineHitRight();
+		
+		leftHit = (Constants);
+		
+		
+		
+		// Clear index if direction is invalid
+		if (currentWindrose == Windrose.OTHER || currentWindrose.isDiagonal()) {
+			index = 0;
+		}
+		
+		// Otherwise correct
+		else 
+			this.correction(currentWindrose);
+		
+		LCD.drawString("ind:        ", 0, 3);
+		LCD.drawString("ind: "+index, 0, 3);
+		
+		this.lastLeft = leftHit;
+		this.lastRight = rightHit;
+	}
+	
+	/**
+	 * Correction logic based upon the current windrose
+	 * @param wr
+	 */
+	private void correction(Windrose wr) {
+		
+		 if (wr.isGrid()) {
+			if (leftHit && rightHit) {
+				this.simultaneousHitGridCorrection(wr);
+				odometer.setTheta(wr.getTheta());
+				Sound.buzz();
+			}
+			
+			else if (leftHit && !this.lastLeft) {
+				xCord[index] = currentX;
+				yCord[index] = currentY;	 	
+				index++;
+				Sound.beep();
+			}
+			
+			else if (rightHit && !this.lastRight) {
+				xCord[index] = currentX;
+				yCord[index] = currentY;
+				index++;
+				Sound.beep();
+			}
+			
+			if (index == 2) {
+				double ptpd = this.pointToPointDistance(xCord[0],yCord[0],xCord[1],yCord[1]);
+				
+				if (ptpd < 13) {	
+					double thetaCorrection = Math.toDegrees(Math.asin((ptpd/2)/(Constants.LIGHT_SENSOR_X)));
+					
+					if (leftHit) 
+						thetaCorrection = -thetaCorrection;
+										
+					odometer.setTheta(thetaCorrection + wr.getTheta());
+					
+					double cos = Math.cos(Math.toRadians(thetaCorrection));
+	  				double deltaLight = (ptpd/2)*cos;	//COS //(ptpd/2)
+	  				double deltaBot = (Constants.LIGHT_SENSOR_Y)*cos;
+  					
+					LCD.drawString("dL:              ", 0, 5);
+					LCD.drawString("dL: "+deltaLight, 0, 4);
+					LCD.drawString("dB:              ", 0, 4);
+					LCD.drawString("dB: "+deltaBot, 0, 5);
+					
+					//odometer.setX(this.closestLine(currentX) + (deltaLight - deltaBot));
+					this.twoHitGridCorrection(wr,(deltaLight - deltaBot));
+					
+					Sound.buzz();
+				}
+				
+				index = 0;	
+			}
+		}
+		
+		 /*
+		//else if (wr.isDiagonal()) {
+		else if (wr == Windrose.NORTHEAST) {
+			//Sound.beep();
+			if (leftHit && rightHit) {
+				xCord[index] = currentX;
+				yCord[index] = currentY;	 			
+				index++;	
+				xCord[index] = currentX;
+				yCord[index] = currentY;	 			
+				index++;
+				
+				doubleLineHits++;
+				
+				if (doubleLineHits == 2) {
+					odometer.setTheta(wr.getTheta());
+					odometer.setX(this.closestLine(currentX)); //rough
+					odometer.setY(this.closestLine(currentY)); //Rough
+					index = 0;
+					doubleLineHits = 0;
+				}
+					
+				Sound.buzz();
+			}
+			
+			else if (leftHit && !this.lastLeft) {
+				xCord[index] = currentX;
+				yCord[index] = currentY;	 			
+				index++;
+				
+				Sound.beep();
+			}
+			
+			else if (rightHit && !this.lastRight) {
+				xCord[index] = currentX;
+				yCord[index] = currentY;	 			
+				index++;
+				Sound.beep();
+			}
+			
+			if (index == 3) {
+				
+				double ptpd_1_2 = this.pointToPointDistance(xCord[1],yCord[1],xCord[2],yCord[2]);
+				double tc = this.getThetaCorrection(ptpd_1_2);
+				
+				if (rightHit) 
+					tc = -tc;
+				else if (leftHit)
+					tc = 90 - tc;
+									
+				odometer.setTheta(tc + 0);
+				
+				double cos = Math.cos(Math.toRadians(tc));
+  				double deltaLight = (ptpd_1_2/2)*cos;	//COS //(ptpd/2)
+  				double deltaBot = (Constants.LIGHT_SENSOR_Y)*cos;
+				
+				// If left hit correct x
+				if (leftHit) {
+					odometer.setX(this.closestLine(currentX) + (deltaLight - deltaBot));
+				}
+				
+				// If right hit correct y
+				else if (rightHit) {
+					odometer.setY(this.closestLine(currentY) + (deltaLight - deltaBot));
+				}
+				Sound.buzz();
+			}
+			
+			else if (index == 4) {
+				
+				double ptpd_0_3 = this.pointToPointDistance(xCord[0],yCord[0],xCord[3],yCord[3]);
+				double tc = this.getThetaCorrection(ptpd_0_3);
+				
+				if (leftHit) 
+					tc = -tc;
+				else if (rightHit)
+					tc = 90 - tc;
+				
+				odometer.setTheta(tc + 0);
+				
+				double cos = Math.cos(Math.toRadians(tc));
+  				double deltaLight = (ptpd_0_3/2)*cos;	//COS //(ptpd/2)
+  				double deltaBot = (Constants.LIGHT_SENSOR_Y)*cos;
+				
+				// If right hit correct x
+				if (rightHit) {
+					odometer.setX(this.closestLine(currentX) + (deltaLight - deltaBot));
+				}
+				
+				// If left hit correct y
+				else if (leftHit) {
+					odometer.setY(this.closestLine(currentY) + (deltaLight - deltaBot));
+				}
+				
+				Sound.buzz();
+				index = 0;
+				doubleLineHits = 0;
+			}
+			
+					
+		}*/
+		 
+		 //LCD.drawString("ind: "+index, 0, 5);
+	}
+	
+	/**
+	 * If both light sensors hit simultaneously in grid correction
+	 * @param wr
+	 */
+	private void simultaneousHitGridCorrection(Windrose wr) {
+		switch(wr) {
+			case NORTH:
+				odometer.setY(this.closestLine(currentY) - Constants.LIGHT_SENSOR_Y);
+				break;
+			case EAST:
+				odometer.setX(this.closestLine(currentX) - Constants.LIGHT_SENSOR_Y);
+				break;
+			case SOUTH:
+				odometer.setY(this.closestLine(currentY) + Constants.LIGHT_SENSOR_Y);
+				break;
+			case WEST:
+				odometer.setX(this.closestLine(currentX) + Constants.LIGHT_SENSOR_Y);
+				break;
+		}
+	}
+	
+	/**
+	 * Correction if there are two separate hits using grid correction.
+	 * @param wr
+	 * @param delta
+	 */
+	private void twoHitGridCorrection(Windrose wr, double delta) {
+		switch(wr) {
+			case NORTH:
+				odometer.setY(this.closestLine(currentY) + delta);
+				break;
+			case EAST:
+				odometer.setX(this.closestLine(currentX) + delta);
+				break;
+			case SOUTH:
+				odometer.setY(this.closestLine(currentY) - delta);
+				break;
+			case WEST:
+				odometer.setX(this.closestLine(currentX) - delta);
+				break;
+		}
+	}
+	
+	/**
+	 * Returns the magnitude of the theta correction from the normal of the line crossed,
+	 * based upon the point to point distance. 
+	 * @param ptpd
+	 * @return theta correction in degrees 
+	 */
+	private double getThetaCorrection(double ptpd) {
+		return Math.toDegrees(Math.asin((ptpd/2)/(Constants.LIGHT_SENSOR_X)));
+	}
+	
+	
+	/**
+	 * Starts the odometer correction
+	 */
+	public void startTimer() {
+		if (!active)
+			correctionTimer.start();
+		active = true;
+	}
+	
+	/**
+	 * Stops the odometer correction
+	 */
+	public void stopTimer() {
+		if (active)
+			correctionTimer.stop();
+		active = false; 
+	}
+	
+	/**
+	 * Returns the cm value of the closest line based upon an x or y value. 
+	 * The lines are all multiples of 30
+	 * @param xOrY
+	 * @return int value of closest line in cm
+	 */
+	private int closestLine(double xOrY) {
+		int div = (int) xOrY / 30;
+		if ((xOrY % 30)  > 15)
+			div++;
+		return (div * 30); 
+	}
+	
+	
+	/**
+	 * Returns a windrose approximation of the current direction 
+	 * @return windrose direction
+	 */
+	private Windrose getWindrose() {
+		
+		double rad = Math.toRadians(odometer.getTheta());
+		double cos = Math.cos(rad);
+		double sin = Math.sin(rad);
+		
+		if (cos > .88) 
+			return Windrose.NORTH;
+		else if (sin > .88)
+			return Windrose.EAST;
+		else if (cos < -.88) 
+			return Windrose.SOUTH;
+		else if (sin < -.88)
+			return Windrose.WEST;
+		
+		else if (cos > .5 && sin > .5)
+			return Windrose.NORTHEAST;
+		else if (cos > .5 && -sin > .5)
+			return Windrose.SOUTHEAST;
+		else if (-cos > .5 && -sin > .5)
+			return Windrose.SOUTHWEST;
+		else if (-cos > .5 && sin > .5)
+			return Windrose.NORTHWEST;
+		
+		return Windrose.OTHER;
+	}
+	
+	/**
+	 * Determines the point to point distance between two points 
+	 * @param aX, x value of point a
+	 * @param aY, y value of point a
+	 * @param bX, x value of point b
+	 * @param bY, y value of point b
+	 * @return double distance
+	 */
+	private double pointToPointDistance(double aX, double aY, double bX, double bY) {
+		double dX = bX - aX;
+		double dY = bY - aY;
+		return Math.sqrt(Math.pow(dX,2)+Math.pow(dY,2));
+	}
+	
+	
+	/**
+	 * Sleep the thread for some milliseconds
+	 * @param milliseconds
+	 */
+	private void snooze(int milliseconds) {
+		try { Thread.sleep(milliseconds); } catch (InterruptedException e) { e.printStackTrace(); }
+	}
+	
+}

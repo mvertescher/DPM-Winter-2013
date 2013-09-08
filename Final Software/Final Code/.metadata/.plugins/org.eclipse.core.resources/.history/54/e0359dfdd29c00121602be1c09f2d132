@@ -1,0 +1,23 @@
+package odometry.correction;
+
+import lejos.nxt.LightSensor;
+
+public class LightSensorControl {
+
+	private LightSensor lsl, lsr;
+	private int[] left
+	private final int sampleSize = 3; 
+	
+	public LightSensorControl() {
+		
+	}
+	
+	public boolean leftLineHit() { 
+		
+	}
+	
+	public boolean rightLineHit() {
+		
+	}
+	
+}

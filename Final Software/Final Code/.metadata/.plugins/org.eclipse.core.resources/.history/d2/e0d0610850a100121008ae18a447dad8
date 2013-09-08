@@ -1,0 +1,331 @@
+package client;
+
+import lejos.geom.Point;
+
+
+/**
+ * ServerParser.java <br> <br>
+ * 
+ * All information sent from the server gui is cached in this class 
+ * 
+ * @author Matthew Vertescher
+ *
+ */
+public class ServerParser {
+
+	/**
+	 * Bluetooth connection
+	 */
+	private BluetoothConnection bc;
+	
+	/**
+	 * Transmission from the server
+	 */
+	private Transmission transmission; 
+	
+	/**
+	 * Integer role, 1 attacker, 2 defender, null 0 
+	 */
+	private int integerRole;
+	
+	/**
+	 * The starting corner as an integer, either 1,2,3, or 4.
+	 */
+	private int integerCorner;
+	
+	/**
+	 * Starting point in cm
+	 */
+	private Point start;
+	
+	/**
+	 * First point in cm
+	 */
+	private Point firstPoint;
+	
+	/**
+	 * Ball dispenser point in cm
+	 */
+	private Point bd;
+	
+	/**
+	 * Target point in cm for Beta
+	 */
+	private Point target;
+
+	/**
+	 * w1 in tiles 
+	 */
+	private int w1;
+	
+	/**
+	 * w1 in cm
+	 */
+	private int defenseX;
+	
+	/**
+	 * w2 in tiles 
+	 */
+	private int w2;
+	
+	/**
+	 * w2 in cm
+	 */
+	private int defenseY;
+	
+	/**
+	 * d1 in tiles
+	 */
+	private int d1;
+	
+	/**
+	 * Forward line from 0 y in cm
+	 */
+	private int forwardLine;
+	
+	
+	/**
+	 * Simple constructor
+	 */
+	public ServerParser() {
+		// Defaults
+		
+		// Change the role here
+		this.integerRole = 1; //TODO: THIS SHOULD BE 0 
+		// Change the corner here
+		this.integerCorner = 4;
+		
+		switch(this.integerCorner) {
+			default:
+			case 1: 
+				this.firstPoint = new Point(15,15);
+				break;
+			case 2: 
+				this.firstPoint = new Point(285,15);
+				break;
+			case 3: 
+				this.firstPoint = new Point(285,285);
+				break;
+			case 4: 
+				this.firstPoint = new Point(15,285);
+				break;	
+		}
+		
+		
+		
+		// Change the defense zone here
+		this.w1 = 4;
+		this.w2 = 4;
+		
+		this.defenseX = (this.w1 * 30);
+		this.defenseY = (this.w2 * 30);
+		
+		// Change forward line here
+		this.d1 = 5; // 5 <= d1 <= 8
+		this.forwardLine = (10 - this.d1) * 30; 
+		
+		
+		this.bd = new Point(330,150);
+	}
+	
+	/**
+	 * Receive the transmission 
+	 * Note that this method must be called before getting any data 
+	 */
+	public void getTransmission() {
+		bc = new BluetoothConnection();
+		transmission = bc.getTransmission();
+		
+		// Start parsing 
+		
+		if(transmission.role.equals(PlayerRole.ATTACKER)) 
+			this.integerRole = 1;
+		else if(transmission.role.equals(PlayerRole.DEFENDER)) 
+			this.integerRole = 2;
+		
+		
+		bd = new Point((30*transmission.bx),(30*transmission.by));
+		
+		//target = new Point((30*transmission.w1),(30*transmission.w2)); // Beta
+		this.target = new Point(150,300); // Final
+		
+		this.w1 = transmission.w1;
+		this.w2 = transmission.w2;
+		
+		this.defenseX = (this.w1 * 30);
+		this.defenseY = (this.w2 * 30);
+		
+		this.d1 = transmission.d1;
+		this.forwardLine = (10 - this.d1) * 30; 
+		
+		switch(transmission.startingCorner) {
+			case BOTTOM_LEFT:
+				this.integerCorner = 1;
+				this.start = new Point(-15,-15); 
+				this.firstPoint = new Point(15,15); 
+				break;
+			
+			case BOTTOM_RIGHT:
+				this.integerCorner = 2;
+				this.start = new Point(315,-15);
+				this.firstPoint = new Point(285,15);  
+				break;
+			
+			case TOP_RIGHT:
+				this.integerCorner = 3;
+				this.start = new Point(315,315);
+				this.firstPoint = new Point(285,285);
+				break;
+				
+			case TOP_LEFT:
+				this.integerCorner = 4;
+				this.start = new Point(-15,315);
+				this.firstPoint = new Point(15,285);
+				break;
+			
+			case NULL:
+				break;
+		
+		}
+	}
+	
+	/**
+	 * Check if attacker
+	 * @return true if attacker, false if defender 
+	 */
+	public boolean isAttacker() {
+		return (this.integerRole == 1);
+	}
+	
+	/**
+	 * Check if defender
+	 * @return true if defender, false if defender 
+	 */
+	public boolean isDefender() {
+		return (this.integerRole == 2);
+	}
+	
+	/**
+	 * Returns the starting corner as an int
+	 * @return int corner
+	 */
+	public int startingCorner() {
+		return this.integerCorner;
+	}
+	
+	/**
+	 * Returns an approximation of the robot's assumed starting location in cm.
+	 * This corresponds to the center of a tile.
+	 * @return a point 
+	 */
+	public Point startingPoint() {
+		return start;
+	}
+	
+	/**
+	 * Returns the first travel point after localization. 
+	 * @return the first travel Point 
+	 */
+	public Point firstPoint() {
+		return this.firstPoint; 
+	}
+	
+	/**
+	 * Ball dispenser point in cm.
+	 * This should be a line and wall intersection point.
+	 * Ex. (-1,4) returned as (-30,120)
+	 * @return a point 
+	 */
+	public Point ballDispenserPoint() {
+		return bd;
+	}
+	
+	/**
+	 * Returns the x coordinate of the ball dispenser 
+	 * @return coordinate in cm
+	 */
+	public double ballDispenserX() {
+		return bd.getX();
+	}
+	
+	/**
+	 * Returns the y coordinate of the ball dispenser 
+	 * @return coordinate in cm
+	 */
+	public double ballDispenserY() {
+		return bd.getY();
+	}
+	
+	
+	/**
+	 * Return w1 in tiles
+	 * @return w1 in tiles
+	 */
+	public int getW1() {
+		return this.w1;
+	}
+	
+	/**
+	 * Returns w2 in tiles
+	 * @return w2 in tiles
+	 */
+	public int getW2() {
+		return this.w2;
+	}
+	
+	
+	/**
+	 * Defense zone x in cm.
+	 * @return int defense x in cm
+	 */
+	public int defenseX() {
+		return this.defenseX;
+	}
+	
+	/**
+	 * Defense zone y in cm.
+	 * @return int defense y in cm
+	 */
+	public int defenseY() {
+		return this.defenseY;
+	}
+	
+	/**
+	 * Return d1 in tiles
+	 * @return int
+	 */
+	public int getD1() {
+		return this.d1;
+	}
+	
+	/**
+	 * Returns the forward line Y coordinate in cm
+	 * @return
+	 */
+	public int forwardLineY() {
+		return this.forwardLine;
+	}
+	
+	
+	/**
+	 * Returns the defense zone as a point.
+	 * In the beta test, this corresponds to the location of the target.
+	 * For the final, this is (150,300)
+	 * @return point
+	 */
+	public Point targetPoint() {
+		return new Point(150,300);
+	}
+	
+	
+	
+	/**
+	 * Print the transmission for debugging
+	 */
+	public void printTransmission() {
+		bc.printTransmission();
+	}
+	
+	
+	
+}

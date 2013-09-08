@@ -1,0 +1,102 @@
+package main;
+
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import lejos.nxt.Button;
+import lejos.nxt.LCD;
+import lejos.nxt.Sound;
+import lejos.nxt.comm.BTConnection;
+import lejos.nxt.comm.Bluetooth;
+
+/**
+ * Remote.java
+ * 
+ * Main class for the remote brick.
+ * Waits for a new bluetooth connection.
+ * 
+ * @author Felix Dube
+ *
+ */
+public class Remote {
+	
+	private static Launcher launcher;
+	
+	public static void main(String [] args) throws Exception {
+		String connected = "Connected";
+		String waiting = "Waiting...";
+		String closing = "Closing...";
+		
+		launcher = new Launcher();
+		
+		while (true){
+			LCD.drawString(waiting,0,0);
+			LCD.refresh();
+			
+			BTConnection btc = Bluetooth.waitForConnection();
+			LCD.clear();
+			LCD.drawString(connected,0,0);
+			LCD.refresh();
+			
+			DataInputStream dis = btc.openDataInputStream();
+			DataOutputStream dos = btc.openDataOutputStream();		//FELIZ
+			
+			
+			int numberOfBalls;
+			int shootingPositionX;
+			int shootingPositionY;
+			
+			while(true){
+				Sound.beep();
+				numberOfBalls = dis.readInt();
+				Sound.buzz();
+				
+				Sound.beep();
+				shootingPositionX = dis.readInt();
+				Sound.buzz();
+				
+				Sound.beep();
+				shootingPositionY = dis.readInt();
+				Sound.buzz();
+				
+				if(shootingPositionX == , shootingPositionY == ){
+					Laucnher.changeSpeed( , );
+				}
+				
+				if(shootingPositionX == , shootingPositionY == ){
+					Laucnher.changeSpeed( , );
+				}
+				
+				if(shootingPositionX == , shootingPositionY == ){
+					Laucnher.changeSpeed( , );
+				}
+				
+				if(shootingPositionX == , shootingPositionY == ){
+					Laucnher.changeSpeed( , );
+				}
+
+					
+				for (int i = 0; i < numberOfBalls; i++){
+						
+					LCD.clear();
+					LCD.drawString("Shooting",0,0);
+					LCD.refresh();
+					
+					launcher.fire();
+					
+					Thread.sleep(2000);		
+				}
+				
+				try {						//FELIZ
+					dos.writeInt(0);
+					dos.flush();
+				} catch (IOException ioe) {
+					Sound.buzz();
+					Sound.buzz();
+					Sound.buzz();
+				}
+				
+			}
+		}
+	}
+}

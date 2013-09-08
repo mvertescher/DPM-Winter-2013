@@ -1,0 +1,99 @@
+package localization;
+
+import robot.Robot;
+
+/**
+ * UltrasonicApproximation.java
+ * 
+ * Has the Robot move to face a certain angle
+ *  
+ * @author Matthew Vertescher 
+ *
+ */
+public class UltrasonicApproximation {
+
+	/**
+	 * Robot pointer
+	 */
+	private Robot robot; 
+	
+	/**
+	 * Search distance
+	 */
+	private int searchDistance = 50; 
+	
+	/**
+	 * Approximate turn to angle
+	 */
+	private int aproxAng = -10; //40
+	
+	/**
+	 * Constructor
+	 * @param r
+	 */
+	public UltrasonicApproximation(Robot r) {
+		this.robot = r;
+	}
+	
+	/**
+	 * Turn to angle
+	 * @param c corner
+	 * @param heading in degrees
+	 */
+	public void approximateToAngle(Corner c, double heading) {
+		
+		robot.startUltrasonicTimer();
+		snooze(500);
+		
+		switch(c) {
+			case ONE:
+				break;
+			case TWO:
+				break;
+			case THREE:
+				break;
+			case FOUR:
+				break;
+		}
+		
+		//int leftDistance = robot.getLeftUltrasonicDistance();
+		int rightDistance = robot.getRightUltrasonicDistance();
+		
+		if (rightDistance > this.searchDistance) {
+			//robot.rotateLeftTilStop();
+			robot.rotateRightTilStop(); // Backwards
+			while(rightDistance >= this.searchDistance) {
+				rightDistance = robot.getRightUltrasonicDistance();
+				snooze(30);
+			}	
+			robot.stopMotors();
+		}
+		
+		else if (rightDistance < this.searchDistance) {
+			//robot.rotateRightTilStop(); // Backwards
+			robot.rotateLeftTilStop();
+			while(rightDistance <= this.searchDistance) {
+				rightDistance = robot.getRightUltrasonicDistance();
+				snooze(30);
+			}	
+			robot.stopMotors();
+		}
+	
+		robot.rotateImmediate( (-aproxAng) - heading);
+		
+		robot.setTheta(heading);
+		
+		robot.stopUltrasonicTimers();
+		
+		snooze(200);
+	}
+	
+	/**
+	 * Sleep the thread for some milliseconds
+	 * @param milliseconds
+	 */
+	private void snooze(int milliseconds) {
+		try { Thread.sleep(milliseconds); } catch (InterruptedException e) { e.printStackTrace(); }
+	}
+ 
+}
